@@ -4,55 +4,73 @@ public abstract class Characters {
 
     // Trying to add some parameters see if it's private or public
     // How to be sure that one is private and the other should be public for example ?
-    public String name;
-    public String makeSound;
+    protected String name;
+    protected String makeSound;
 
-    private final int numberOfHeart ;
-    private final int defeat = (numberOfHeart = 0);
-    private int damage;
-    private int defense;
+    private int numberOfHeart  ;
+    //Making defeat as a constant ?
+    // It's better to declare it here =3 or in the constructor ?
+    // Best practice ?
+
+
+    // private int defeat ;
+    private int damage = 3;
+    private int defense = 5;
 
 
     // Making the constructor
-    public Characters(String name, String sound, int damage, int defense) {
+    public Characters(String name, String sound, int numberOfHeart, int damage, int defense) {
         this.name = name;
         this.makeSound = sound;
+
+        //Putting the parameter inside the constructor but declaring it inside the "()" ?
+        this.numberOfHeart = 5;
+       // this.defeat = defeat;
         this.damage = damage;
         this.defense = defense;
     }
 
     // Accessing the private attribute
-    public int getNumberOfHeart() {
-        return numberOfHeart;
+
+
+    public String getName() {return name;}
+
+    public String getMakeSound() { return makeSound; }
+
+    public  int getNumberOfHeart() {return numberOfHeart; }
+
+    // Not obligated to use int ? Making it in a parameter
+    public void getDefeat(int defeat) {
+
+        if (defeat == 0){
+            System.out.println(" Game Over :( ");
+            System.out.println("Would you like to try again ?");
+
+            //Putting exit to exit game when characters is defeated ?
+            System.exit(0);
+        }
     }
 
-    public int getDefeat() {
-        return defeat;
-    }
+    public int getDamage() {return damage; }
 
-    public int getDamage() {
-        return damage;
-    }
-
-    public int getDefense() {
-        return defense;
-    }
+    public int getDefense() { return defense; }
 
     // Initializing the setter to be able to modify the parameter as time goes by
     // I mean if a parameter need to be modified depending on an external situation
 
-    public void setDamage(int damage) {
-        this.damage = damage;
+    public void setDamage(int newDamage) {
+        this.damage = newDamage;
     }
-    public void setDefense(int defense) {
-        this.defense = defense;
-    }
-
-    public void setNumberOfHeart(int numberOfHeart) {
+    public void setDefense(int newDefense) {
+        this.defense = newDefense;
     }
 
-    public void setMakeSound(String makeSound) {
-        this.makeSound = makeSound;
+    public void setNumberOfHeart(int newNumberOfHeart) {
+        this.numberOfHeart = newNumberOfHeart;
+    }
+
+    public void setMakeSound(String newSound) {
+        this.makeSound = newSound;
     }
 
 
