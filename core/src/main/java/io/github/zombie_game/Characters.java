@@ -14,8 +14,11 @@ public abstract class Characters {
 
 
     // private int defeat ;
+
+    //redundant because already initialised ?
     private int damage = 3;
     private int defense = 5;
+    private int ennemiesAttack = 1;
 
 
     // Making the constructor
@@ -28,6 +31,7 @@ public abstract class Characters {
        // this.defeat = defeat;
         this.damage = damage;
         this.defense = defense;
+
     }
 
     // Accessing the private attribute
@@ -51,9 +55,11 @@ public abstract class Characters {
         }
     }
 
-    public int getDamage() {return damage; }
+    public int getDamage(int attack) {return damage; }
 
     public int getDefense() { return defense; }
+
+    public int getEnnemiesAttack() {return ennemiesAttack;}
 
     // Initializing the setter to be able to modify the parameter as time goes by
     // I mean if a parameter need to be modified depending on an external situation
@@ -73,5 +79,7 @@ public abstract class Characters {
         this.makeSound = newSound;
     }
 
-
+    public void setEnnemiesAttack(int newEnnemiesAttack) {
+        this.ennemiesAttack = newEnnemiesAttack;
+    }
 }
