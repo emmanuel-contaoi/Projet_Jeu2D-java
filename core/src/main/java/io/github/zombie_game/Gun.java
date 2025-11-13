@@ -1,4 +1,4 @@
 package io.github.zombie_game;
 
-public class Gun {
+public class Gun extends Weapon{
 }
