@@ -1,4 +1,4 @@
 package io.github.zombie_game;
 
-public class GameScreen {
+public abstract class GameScreen {
 }

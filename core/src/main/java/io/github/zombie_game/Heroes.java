@@ -4,20 +4,9 @@ import io.github.zombie_game.GameTime;
 import java.lang.Math;
 
 public class Heroes extends Characters {
-
-    public Heroes(
-        String name,
-        String makeSound,
-        int numberOfHeart,
-        int damage,
-        int defense,
-        int ennemiesAttack,
-        Vector3 position, Vector3 fall
-        ) {
-        super(name, makeSound, numberOfHeart, damage, defense, ennemiesAttack);
-        
-        };
-
+    public Heroes(String name, String sound, int numberOfHeart, int damage, int defense, int ennemiesAttack) {
+        super(name, sound, numberOfHeart, damage, defense, ennemiesAttack);
+    }
 
 
 
@@ -33,6 +22,51 @@ public class Heroes extends Characters {
             "Okay, I will not go against your wishes. I let some weapon just outside when the apocalypse began " +
             "They might not be the best but I hope they will do the job. " +
             "Good luck on your quest !" +  name);
+    }
+
+    @Override
+    public void moveLeft() {
+
+    }
+
+    @Override
+    public void moveRight() {
+
+    }
+
+    @Override
+    public void stayStill() {
+
+    }
+
+    @Override
+    public void jump() {
+
+    }
+
+    @Override
+    public void jumpLeft() {
+
+    }
+
+    @Override
+    public void jumpRight() {
+
+    }
+
+    @Override
+    public void fightWithSword() {
+
+    }
+
+    @Override
+    public void fightWithGun() {
+
+    }
+
+    @Override
+    public void fightWithMachineGun() {
+
     }
 
 //    //public void finalChapter(int gamePosition){

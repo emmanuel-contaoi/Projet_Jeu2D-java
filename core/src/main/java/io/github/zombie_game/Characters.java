@@ -1,7 +1,8 @@
 package io.github.zombie_game;
+
 import com.badlogic.gdx.math.Vector3;
 
-public abstract class Characters  implements Move, Fight {
+public abstract class Characters implements Move, Fight {
 
     // Trying to add some parameters see if it's private or public
     // How to be sure that one is private and the other should be public for example ?
@@ -30,7 +31,7 @@ public abstract class Characters  implements Move, Fight {
 
         //Putting the parameter inside the constructor but declaring it inside the "()" ?
         this.numberOfHeart = 5;
-       // this.defeat = defeat;
+        // this.defeat = defeat;
         this.damage = damage;
         this.defense = defense;
         this.ennemiesAttack = ennemiesAttack;
