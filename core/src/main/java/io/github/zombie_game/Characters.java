@@ -1,13 +1,14 @@
 package io.github.zombie_game;
+import com.badlogic.gdx.math.Vector3;
 
-public abstract class Characters {
+public abstract class Characters  implements Move, Fight {
 
     // Trying to add some parameters see if it's private or public
     // How to be sure that one is private and the other should be public for example ?
     protected String name;
     protected String makeSound;
 
-    private int numberOfHeart  ;
+    private int numberOfHeart = 0 ;
     //Making defeat as a constant ?
     // It's better to declare it here =3 or in the constructor ?
     // Best practice ?
@@ -16,9 +17,10 @@ public abstract class Characters {
     // private int defeat ;
 
     //redundant because already initialised ?
-    private int damage = 3;
-    private int defense = 5;
+    private int damage = 0;
+    private int defense = 0;
     private int ennemiesAttack = 1;
+    private Vector3 position, fall ;
 
 
     // Making the constructor
