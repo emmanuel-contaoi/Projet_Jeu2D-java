@@ -17,9 +17,20 @@ public class Heroes extends Characters{
             "What ? You want to do go find them ? " +
             "It's dangerous ! " +
             "Okay, I will not go against your wishes. I let some weapon just outside when the apocalypse began " +
-            "Thy might not be the best but I hope they will do the job. " +
+            "They might not be the best but I hope they will do the job. " +
             "Good luck on your quest !" +  name);
     }
+
+//    //public void finalChapter(int gamePosition){
+//
+//
+//     int  x = playerPositionX;
+//    int y = playPositionY;
+//
+//        if  (gamePosition(x , y )) {
+//            System.out.println("I see some light ! I feel it, They will be there, the survivors !");
+//        }
+//    }
 
 //    public void saySentence(String name, int n ) {
 //
