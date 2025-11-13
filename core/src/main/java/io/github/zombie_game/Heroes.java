@@ -1,11 +1,25 @@
 package io.github.zombie_game;
+import com.badlogic.gdx.math.Vector3;
 import io.github.zombie_game.GameTime;
 import java.lang.Math;
 
-public class Heroes extends Characters{
+public class Heroes extends Characters {
+
+    public Heroes(
+        String name,
+        String makeSound,
+        int numberOfHeart,
+        int damage,
+        int defense,
+        int ennemiesAttack,
+        Vector3 position, Vector3 fall
+        ) {
+        super(name, makeSound, numberOfHeart, damage, defense, ennemiesAttack);
+        
+        };
 
 
-//    int randomised = M
+
 
 
     // Need to override it after creating it in the branch later
