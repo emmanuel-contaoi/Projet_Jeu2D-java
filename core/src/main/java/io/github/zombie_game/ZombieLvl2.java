@@ -49,4 +49,7 @@ public class ZombieLvl2 extends Zombies{
     public void jumpRight() {
 
     }
+
+    public static class MachineGun extends Weapon {
+    }
 }

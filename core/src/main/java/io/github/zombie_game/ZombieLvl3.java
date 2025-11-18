@@ -50,4 +50,10 @@ public class ZombieLvl3 extends Zombies{
     public void jumpRight() {
 
     }
+
+    public static class Gun extends Weapon {
+    }
+
+    public static class Knife extends Weapon {
+    }
 }
