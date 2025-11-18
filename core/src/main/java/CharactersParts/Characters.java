@@ -11,6 +11,7 @@ public abstract class Characters implements Move, Fight, KeyListener {
     protected String name;
     protected String makeSound;
 
+
     private int numberOfHeart = 0 ;
     //Making defeat as a constant ?
     // It's better to declare it here =3 or in the constructor ?
