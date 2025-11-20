@@ -9,6 +9,7 @@ public class MainGame extends Game {
 
     public SpriteBatch batch;
     public Assets assets;
+    public String selectedHero = "Hugo";
 
     @Override
     public void create() {

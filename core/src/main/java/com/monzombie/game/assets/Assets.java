@@ -16,6 +16,25 @@ public class Assets {
     public Texture soldierSheet;      // sprite sheet 8-bit 2.png
     public Texture zombieSheet;       // zombie_sheet.png
     public Texture hearts;            // hearts.png
+    public Texture hugoSwordFL;
+    public Texture hugoSwordFR;
+    public Texture hugoJumpFL;
+    public Texture hugoJumpFR;
+    public Texture alexisSwordFL;
+    public Texture alexisSwordFR;
+    public Texture alexisJumpFL;
+    public Texture alexisJumpFR;
+
+    // simples "animations" des héros (liste de frames)
+    public Array<TextureRegion> hugoGroundL = new Array<>();
+    public Array<TextureRegion> hugoGroundR = new Array<>();
+    public Array<TextureRegion> hugoJumpL = new Array<>();
+    public Array<TextureRegion> hugoJumpR = new Array<>();
+
+    public Array<TextureRegion> alexisGroundL = new Array<>();
+    public Array<TextureRegion> alexisGroundR = new Array<>();
+    public Array<TextureRegion> alexisJumpL = new Array<>();
+    public Array<TextureRegion> alexisJumpR = new Array<>();
 
     // Animations player
     public Animation<TextureRegion> animWalk, animRun, animShot;
@@ -32,9 +51,21 @@ public class Assets {
         soldierSheet = loadTexture("sprite sheet 8-bit 2.png");
         zombieSheet  = loadTexture("zombie_sheet.png");
         hearts       = loadTexture("hearts.png");
+        hugoSwordFL  = loadTexture("HugoSwordFL.png");
+        hugoSwordFR  = loadTexture("HugoSwordFR.png");
+        hugoJumpFL   = loadTexture("HugoJumpingFL.png");
+        hugoJumpFR   = loadTexture("HugoJumpingFR.png");
+        alexisSwordFL = loadTexture("AlexisSwordFL.png");
+        alexisSwordFR = loadTexture("AlexisSwordFR.png");
+        alexisJumpFL  = loadTexture("AlexisJumpingFL.png");
+        alexisJumpFR  = loadTexture("AlexisJumpingFR.png");
 
         // filtres pixel
-        for (Texture t : new Texture[]{bg, soldierSheet, zombieSheet, hearts})
+        for (Texture t : new Texture[]{
+            bg, soldierSheet, zombieSheet, hearts,
+            hugoSwordFL, hugoSwordFR, hugoJumpFL, hugoJumpFR,
+            alexisSwordFL, alexisSwordFR, alexisJumpFL, alexisJumpFR
+        })
             if (t != null) t.setFilter(Texture.TextureFilter.Nearest, Texture.TextureFilter.Nearest);
 
         // ground tile
@@ -44,6 +75,8 @@ public class Assets {
         buildPlayerAnims();
         buildZombieAnim();
         sliceHearts();
+
+        buildHeroFrames();
     }
 
     private Texture loadTexture(String name) {
@@ -103,8 +136,33 @@ public class Assets {
         Texture t=new Texture(pm); pm.dispose(); return t;
     }
 
+    /**
+     * Met chaque image simple dans une liste, pour faire une "animation" frame par frame.
+     * Si un jour tu ajoutes plus d'images, tu peux juste les ajouter dans ces listes.
+     */
+    private void buildHeroFrames() {
+        addFrame(hugoGroundL, hugoSwordFL);
+        addFrame(hugoGroundR, hugoSwordFR);
+        addFrame(hugoJumpL, hugoJumpFL);
+        addFrame(hugoJumpR, hugoJumpFR);
+
+        addFrame(alexisGroundL, alexisSwordFL);
+        addFrame(alexisGroundR, alexisSwordFR);
+        addFrame(alexisJumpL, alexisJumpFL);
+        addFrame(alexisJumpR, alexisJumpFR);
+    }
+
+    private void addFrame(Array<TextureRegion> list, Texture tex) {
+        if (tex == null) return;
+        list.add(new TextureRegion(tex));
+    }
+
     public void dispose() {
-        for (Texture t : new Texture[]{bg, groundTile, soldierSheet, zombieSheet, hearts})
+        for (Texture t : new Texture[]{
+            bg, groundTile, soldierSheet, zombieSheet, hearts,
+            hugoSwordFL, hugoSwordFR, hugoJumpFL, hugoJumpFR,
+            alexisSwordFL, alexisSwordFR, alexisJumpFL, alexisJumpFR
+        })
             if (t != null) t.dispose();
     }
 

@@ -113,8 +113,14 @@ public class CharacterSelectScreen implements Screen {
         }
 
         if (justUp) {
-            if (pressingC1 && rChar1.contains(mx, my)) game.setScreen(new LevelScreen(game, levelNumber));
-            if (pressingC2 && rChar2.contains(mx, my)) game.setScreen(new LevelScreen(game, levelNumber));
+            if (pressingC1 && rChar1.contains(mx, my)) {
+                game.selectedHero = "Alexis";
+                game.setScreen(new LevelScreen(game, levelNumber));
+            }
+            if (pressingC2 && rChar2.contains(mx, my)) {
+                game.selectedHero = "Hugo";
+                game.setScreen(new LevelScreen(game, levelNumber));
+            }
             if (pressingBack && rBack.contains(mx, my)) game.setScreen(new LevelSelectScreen(game));
 
             pressingC1 = pressingC2 = pressingBack = false;

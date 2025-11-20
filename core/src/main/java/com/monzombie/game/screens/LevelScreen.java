@@ -28,6 +28,7 @@ public class LevelScreen implements Screen {
     private final SpriteBatch batch;
     private final Viewport viewport;
     private final Assets assets;
+    private final String chosenHero;
 
     private Player player;
     private final Array<Bullet> bullets = new Array<>();
@@ -47,6 +48,7 @@ public class LevelScreen implements Screen {
         this.assets = game.assets;
         this.batch = game.batch;
         this.viewport = new FitViewport(Constants.VW, Constants.VH);
+        this.chosenHero = game.selectedHero != null ? game.selectedHero : "Hugo";
         viewport.apply(true);
     }
 
@@ -61,13 +63,30 @@ public class LevelScreen implements Screen {
         float startX = 300f;
         float groundY = Constants.GROUND_H;
 
+        Array<com.badlogic.gdx.graphics.g2d.TextureRegion> groundLeft;
+        Array<com.badlogic.gdx.graphics.g2d.TextureRegion> groundRight;
+        Array<com.badlogic.gdx.graphics.g2d.TextureRegion> jumpLeft;
+        Array<com.badlogic.gdx.graphics.g2d.TextureRegion> jumpRight;
+
+        if ("Alexis".equalsIgnoreCase(chosenHero)) {
+            groundLeft = assets.alexisGroundL;
+            groundRight = assets.alexisGroundR;
+            jumpLeft = assets.alexisJumpL;
+            jumpRight = assets.alexisJumpR;
+        } else {
+            groundLeft = assets.hugoGroundL;
+            groundRight = assets.hugoGroundR;
+            jumpLeft = assets.hugoJumpL;
+            jumpRight = assets.hugoJumpR;
+        }
+
         player = new Player(
             startX,
             groundY,
-            assets.animWalk,
-            assets.animRun,
-            assets.animShot,
-            assets.frameIdle,
+            groundLeft,
+            groundRight,
+            jumpLeft,
+            jumpRight,
             onePx
         );
 
