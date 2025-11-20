@@ -5,6 +5,7 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
 import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.graphics.GL20;
+import com.badlogic.gdx.graphics.Pixmap;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.utils.viewport.FitViewport;
@@ -27,6 +28,7 @@ public class GameOverScreen implements Screen {
     private final Viewport viewport;
 
     private Texture background;
+    private Texture overlay1x1;
     private float timer = 0f;
     private boolean returning = false;
 
@@ -48,6 +50,7 @@ public class GameOverScreen implements Screen {
         if (background == null) {
             background = loadTextureIfExists("menu_background.png");
         }
+        overlay1x1 = makeWhite();
     }
 
     @Override
@@ -61,6 +64,9 @@ public class GameOverScreen implements Screen {
         batch.setProjectionMatrix(viewport.getCamera().combined);
         batch.begin();
         drawBackground();
+        if (game.settings != null) {
+            game.settings.drawBrightnessOverlay(batch, overlay1x1, 0f, Constants.VW, Constants.VH);
+        }
         batch.end();
 
         if (!returning && timer >= DISPLAY_TIME) {
@@ -114,5 +120,15 @@ public class GameOverScreen implements Screen {
     @Override
     public void dispose() {
         if (background != null) background.dispose();
+        if (overlay1x1 != null) overlay1x1.dispose();
+    }
+
+    private Texture makeWhite() {
+        Pixmap pm = new Pixmap(1, 1, Pixmap.Format.RGBA8888);
+        pm.setColor(1, 1, 1, 1);
+        pm.fill();
+        Texture t = new Texture(pm);
+        pm.dispose();
+        return t;
     }
 }

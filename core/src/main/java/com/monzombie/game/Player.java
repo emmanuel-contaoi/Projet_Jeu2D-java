@@ -10,6 +10,7 @@ import com.monzombie.game.Zombie;
 import com.monzombie.game.assets.HeroSpriteSet;
 import com.monzombie.game.assets.HeroSpriteSet.Action;
 import com.monzombie.game.util.Constants;
+import com.monzombie.game.util.SettingsManager;
 
 public class Player {
 
@@ -31,6 +32,7 @@ public class Player {
     private final Rectangle bounds = new Rectangle();
     private final Rectangle swordBounds = new Rectangle();
     private final HeroSpriteSet sprites;
+    private final SettingsManager settings;
     private static final float SHOOT_ANIM_TIME = 0.25f;
     private static final int SWORD_DAMAGE = 100;
     private float shootAnimTimer = 0f;
@@ -40,7 +42,8 @@ public class Player {
 
     public Player(float startX,
                   float groundY,
-                  HeroSpriteSet sprites) {
+                  HeroSpriteSet sprites,
+                  SettingsManager settings) {
 
         this.x = startX;
         this.y = groundY;
@@ -49,6 +52,7 @@ public class Player {
         this.h = Constants.PLAYER_H;
 
         this.sprites = sprites;
+        this.settings = settings;
     }
 
     
@@ -67,13 +71,13 @@ public class Player {
     }
 
     private boolean isLeftPressed() {
-        return Gdx.input.isKeyPressed(Input.Keys.A)
-            || Gdx.input.isKeyPressed(Input.Keys.Q)
-            || Gdx.input.isKeyPressed(Input.Keys.LEFT);
+        int key = settings != null ? settings.getLeftKey() : Input.Keys.A;
+        return Gdx.input.isKeyPressed(key) || Gdx.input.isKeyPressed(Input.Keys.LEFT);
     }
 
     private boolean isRightPressed() {
-        return Gdx.input.isKeyPressed(Input.Keys.D) || Gdx.input.isKeyPressed(Input.Keys.RIGHT);
+        int key = settings != null ? settings.getRightKey() : Input.Keys.D;
+        return Gdx.input.isKeyPressed(key) || Gdx.input.isKeyPressed(Input.Keys.RIGHT);
     }
 
     private boolean isRunPressed() {
@@ -105,13 +109,15 @@ public class Player {
 
     private void handleJump() {
         if (!onGround) return;
-        if (!Gdx.input.isKeyJustPressed(Input.Keys.SPACE)) return;
+        int key = settings != null ? settings.getJumpKey() : Input.Keys.SPACE;
+        if (!Gdx.input.isKeyJustPressed(key)) return;
         vy = Constants.JUMP_IMPULSE;
         onGround = false;
     }
 
     private void handleSwordAttack(Array<Zombie> zombies) {
-        boolean swing = Gdx.input.isKeyJustPressed(Input.Keys.O);
+        int attackKey = settings != null ? settings.getAttackKey() : Input.Keys.O;
+        boolean swing = Gdx.input.isKeyJustPressed(attackKey);
         if (!swing) return;
 
         shootAnimTimer = SHOOT_ANIM_TIME;

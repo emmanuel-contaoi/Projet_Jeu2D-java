@@ -95,7 +95,8 @@ public class LevelScreen implements Screen {
         player = new Player(
             startX,
             groundY,
-            heroSprites
+            heroSprites,
+            game.settings
         );
 
         spawner = new Spawner();
@@ -288,6 +289,10 @@ public class LevelScreen implements Screen {
         drawTimerDisplay();
         hud.render(batch, cameraX, Constants.VW, Constants.VH,
             player.health, Constants.PLAYER_HP_MAX, levelTimer, player.score);
+        if (game.settings != null) {
+            float left = cameraX - Constants.VW / 2f;
+            game.settings.drawBrightnessOverlay(batch, onePx, left, Constants.VW, Constants.VH);
+        }
 
         batch.end();
     }

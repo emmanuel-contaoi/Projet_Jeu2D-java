@@ -135,6 +135,9 @@ public class CharacterSelectScreen implements Screen {
         drawCharacterCard(rChar2, animChar2, "Hugo", rChar2.contains(mx,my), pressingC2);
 
         drawButton(rBack, "RETOUR", rBack.contains(mx,my), pressingBack);
+        if (game.settings != null) {
+            game.settings.drawBrightnessOverlay(batch, getWhite(), 0f, Constants.VW, Constants.VH);
+        }
 
         batch.end();
     }

@@ -147,6 +147,9 @@ public class LevelSelectScreen implements Screen {
         drawButton(rLvl3, "NIVEAU 3",
             hoverL3, pressingL3, lvl3Unlocked, game.isLevelCompleted(3));
         drawButton(rBack, "RETOUR",   hoverBack, pressingBack, true, false);
+        if (game.settings != null) {
+            game.settings.drawBrightnessOverlay(batch, white1x1, 0f, Constants.VW, Constants.VH);
+        }
 
         batch.end();
     }

@@ -102,6 +102,9 @@ public class LeaderboardScreen implements Screen {
         drawTitle();
         drawScores(topScores);
         drawButton(rBack, "RETOUR", rBack.contains(mx, my), pressingBack);
+        if (game.settings != null) {
+            game.settings.drawBrightnessOverlay(batch, getWhite(), 0f, Constants.VW, Constants.VH);
+        }
 
         batch.end();
     }

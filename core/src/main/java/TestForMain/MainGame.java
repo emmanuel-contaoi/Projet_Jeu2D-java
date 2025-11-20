@@ -5,6 +5,7 @@ import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.monzombie.game.assets.Assets;
 import com.monzombie.game.screens.MenuScreen;
 import com.monzombie.game.util.ScoreManager;
+import com.monzombie.game.util.SettingsManager;
 
 public class MainGame extends Game {
 
@@ -12,6 +13,7 @@ public class MainGame extends Game {
     public Assets assets;
     public String selectedHero = "Hugo";
     public ScoreManager scoreManager;
+    public SettingsManager settings;
     private final boolean[] levelCompleted = new boolean[4]; 
     private int highestLevelUnlocked = 1;
 
@@ -20,6 +22,8 @@ public class MainGame extends Game {
         batch = new SpriteBatch();
         assets = new Assets();
         assets.load();
+        settings = new SettingsManager();
+        settings.applyResolution();
         scoreManager = new ScoreManager();
 
         setScreen(new MenuScreen(this));

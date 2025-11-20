@@ -36,11 +36,12 @@ public class MenuScreen implements Screen {
 
     private final Rectangle rStart  = new Rectangle();
     private final Rectangle rOption = new Rectangle();
+    private final Rectangle rSettings = new Rectangle();
     private final Rectangle rExit   = new Rectangle();
 
     private final Vector3 tmp = new Vector3();
     private static final float BTN_W = 360f, BTN_H = 90f, BTN_GAP = 28f;
-    private boolean pressingStart = false, pressingOption = false, pressingExit = false;
+    private boolean pressingStart = false, pressingOption = false, pressingSettings = false, pressingExit = false;
 
     public MenuScreen(MainGame game) {
         this.game = game;
@@ -62,10 +63,11 @@ public class MenuScreen implements Screen {
 
         
         float x = (Constants.VW - BTN_W) / 2f;
-        float top = Constants.VH / 2f + BTN_H + BTN_GAP;
+        float top = Constants.VH / 2f + BTN_H + BTN_GAP * 1.5f;
         rStart.set(x, top, BTN_W, BTN_H);
         rOption.set(x, top - (BTN_H + BTN_GAP), BTN_W, BTN_H);
-        rExit.set(x, top - 2*(BTN_H + BTN_GAP), BTN_W, BTN_H);
+        rSettings.set(x, top - 2*(BTN_H + BTN_GAP), BTN_W, BTN_H);
+        rExit.set(x, top - 3*(BTN_H + BTN_GAP), BTN_W, BTN_H);
     }
 
     @Override
@@ -78,18 +80,20 @@ public class MenuScreen implements Screen {
         float mx = tmp.x, my = tmp.y;
         boolean justDown = Gdx.input.justTouched();
         boolean down = Gdx.input.isTouched();
-        boolean justUp = !down && (pressingStart || pressingOption || pressingExit);
+        boolean justUp = !down && (pressingStart || pressingOption || pressingSettings || pressingExit);
 
         if (justDown) {
             pressingStart  = rStart.contains(mx, my);
             pressingOption = rOption.contains(mx, my);
+            pressingSettings = rSettings.contains(mx, my);
             pressingExit   = rExit.contains(mx, my);
         }
         if (justUp) {
             if (pressingStart  && rStart.contains(mx,my))  { game.setScreen(new LevelSelectScreen(game)); }
             if (pressingOption && rOption.contains(mx,my)) { game.setScreen(new LeaderboardScreen(game)); }
+            if (pressingSettings && rSettings.contains(mx,my)) { game.setScreen(new SettingsScreen(game, this)); }
             if (pressingExit   && rExit.contains(mx,my))   { Gdx.app.exit(); }
-            pressingStart = pressingOption = pressingExit = false;
+            pressingStart = pressingOption = pressingSettings = pressingExit = false;
         }
 
         if (Gdx.input.isKeyJustPressed(Input.Keys.ENTER) || Gdx.input.isKeyJustPressed(Input.Keys.SPACE)) {
@@ -103,7 +107,11 @@ public class MenuScreen implements Screen {
         drawAnimatedBackground(); 
         drawButton(rStart,  "START",  rStart.contains(mx,my),  pressingStart);
         drawButton(rOption, "SCORES", rOption.contains(mx,my), pressingOption);
+        drawButton(rSettings, "SETTINGS", rSettings.contains(mx,my), pressingSettings);
         drawButton(rExit,   "EXIT",   rExit.contains(mx,my),   pressingExit);
+        if (game.settings != null) {
+            game.settings.drawBrightnessOverlay(batch, white1x1, 0f, Constants.VW, Constants.VH);
+        }
 
         batch.end();
     }
