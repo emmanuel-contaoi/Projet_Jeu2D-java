@@ -32,6 +32,47 @@ public class LevelGeometry {
     private static final float PLATFORM_MIN_WIDTH = 60f;
     private static final int   MIN_CRATE_PIXELS = 280;
 
+    private static final class RectDef {
+        final float x;
+        final float y;
+        final float width;
+        final float height;
+
+        RectDef(float x, float y, float width, float height) {
+            this.x = x;
+            this.y = y;
+            this.width = width;
+            this.height = height;
+        }
+    }
+
+    // Bloc vert 1 (sol principal)
+    private static final RectDef[] MANUAL_GROUNDS = new RectDef[]{
+        new RectDef(0f, 0f, 730f, Constants.GROUND_H),             // Bloc sol 1
+        new RectDef(870f, 0f, 550f, Constants.GROUND_H),           // Bloc sol 2
+        new RectDef(1750f, 0f, 1400f, Constants.GROUND_H)            // Bloc sol 3
+    };
+
+    // Bloc vert plateformes
+    private static final RectDef[] MANUAL_PLATFORMS = new RectDef[]{
+        // Plateforme 1
+//        new RectDef(640f, Constants.GROUND_H + 210f, 260f, 30f),   // Plateforme 2
+//        new RectDef(1500f, Constants.GROUND_H + 120f, 220f, 30f)   // Plateforme 3
+    };
+
+    // Bloc rouge (trous / zones mortelles)
+    private static final RectDef[] MANUAL_HAZARDS = new RectDef[]{
+        new RectDef(730f, 890f, 150f, Constants.GROUND_H + 400f),    // Trou 1
+        new RectDef(1400f, 0f, 400f, Constants.GROUND_H + 400f)      // Trou 2
+    };
+
+    // Bloc vert spawn zombies
+    private static final RectDef[] MANUAL_ZONES = new RectDef[]{
+        new RectDef(0f, Constants.GROUND_H, 730f, 220f),          // Spawn zone 1
+        new RectDef(870f, Constants.GROUND_H, 550f, 220f),         // Spawn zone 2
+        new RectDef(1750f, Constants.GROUND_H, 1400f, 220f)          // Spawn zone 3
+    };
+
     private final Array<Rectangle> solids = new Array<>();
     private final Array<Rectangle> hazards = new Array<>();
     private final Array<Rectangle> zombieZones = new Array<>();
@@ -58,18 +99,18 @@ public class LevelGeometry {
     }
 
     private void buildFromMap(String mapPath) {
-        Pixmap pixmap = null;
-        try {
-            pixmap = new Pixmap(Gdx.files.internal(mapPath));
-            buildFromPixmap(pixmap);
-        } catch (Exception e) {
-            if (Gdx.app != null) {
-                Gdx.app.error("LevelGeometry", "Impossible de lire " + mapPath + ", fallback utilisé.", e);
-            }
-            buildFallback();
-        } finally {
-            if (pixmap != null) pixmap.dispose();
-        }
+        buildManualLayout();
+    }
+
+    private void buildManualLayout() {
+        solids.clear();
+        hazards.clear();
+        zombieZones.clear();
+
+        for (RectDef def : MANUAL_GROUNDS) addGround(def);
+        for (RectDef def : MANUAL_PLATFORMS) addPlatform(def);
+        for (RectDef def : MANUAL_HAZARDS) addHazard(def);
+        for (RectDef def : MANUAL_ZONES) addZombieZone(def);
     }
 
     private void buildFromPixmap(Pixmap pixmap) {
@@ -145,7 +186,9 @@ public class LevelGeometry {
         float width = (endX - startX + 1) * scaleX;
         x += BOARD_SHRINK;
         width = Math.max(20f, width - BOARD_SHRINK * 2f);
-        return new Rectangle(x, Constants.GROUND_H, width, BOARD_HEIGHT);
+        Rectangle rect = new Rectangle(x, Constants.GROUND_H, width, BOARD_HEIGHT);
+        logRectY("Plateforme détectée", rect);
+        return rect;
     }
 
     private boolean isBoardColor(int r, int g, int b) {
@@ -217,7 +260,9 @@ public class LevelGeometry {
         if (widthPx < MIN_HOLE_PIXELS) return;
         float hx = startPx * scaleX;
         float hw = widthPx * scaleX;
-        holes.add(new Rectangle(hx, -400f, hw, Constants.GROUND_H + 520f));
+        Rectangle rect = new Rectangle(hx, -400f, hw, Constants.GROUND_H + 520f);
+        holes.add(rect);
+        logRectY("Trou détecté", rect);
     }
 
     private void addHazardZones(Array<Rectangle> holes) {
@@ -225,6 +270,7 @@ public class LevelGeometry {
         for (Rectangle hole : holes) {
             Rectangle hazard = new Rectangle(hole.x, 0f, hole.width, Constants.GROUND_H + 260f);
             hazards.add(hazard);
+            logRectY("Zone mortelle", hazard);
         }
     }
 
@@ -427,6 +473,40 @@ public class LevelGeometry {
             }
             last = solid.x + solid.width;
         }
+    }
+
+    private void logRectY(String label, Rectangle rectangle) {
+        System.out.println(label + " | x=" + rectangle.x + " y=" + rectangle.y + " largeur=" + rectangle.width + " hauteur=" + rectangle.height);
+    }
+
+    private void addGround(RectDef def) {
+        Rectangle rect = new Rectangle(def.x, def.y, def.width, def.height);
+        solids.add(rect);
+        logRectY("Sol manuel", rect);
+    }
+
+    private void addPlatform(RectDef def) {
+        Rectangle rect = new Rectangle(def.x, def.y, def.width, def.height);
+        solids.add(rect);
+        logRectY("Plateforme manuelle", rect);
+    }
+
+    private void addHazard(RectDef def) {
+        float hazardY = def.y;
+        if (hazardY >= Constants.VH || hazardY <= -Constants.VH) {
+            // Align with the ground when the manual value sits outside the visible map.
+            hazardY = 0f;
+        }
+        float hazardHeight = Math.max(def.height, Constants.GROUND_H + 10f);
+        Rectangle rect = new Rectangle(def.x, hazardY, def.width, hazardHeight);
+        hazards.add(rect);
+        logRectY("Zone mortelle manuelle", rect);
+    }
+
+    private void addZombieZone(RectDef def) {
+        Rectangle rect = new Rectangle(def.x, def.y, def.width, def.height);
+        zombieZones.add(rect);
+        logRectY("Zone zombies manuelle", rect);
     }
 
     /**

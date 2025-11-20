@@ -63,6 +63,7 @@ public class LevelScreen implements Screen {
     private Array<Rectangle> hazardZones;
     private Array<Rectangle> zombieZones;
     private boolean debugColliders = true;
+    private boolean initialized = false;
 
     /**
      * Creates a level screen for the requested stage id.
@@ -86,6 +87,10 @@ public class LevelScreen implements Screen {
      */
     @Override
     public void show() {
+        if (initialized) {
+            viewport.apply(true);
+            return;
+        }
         levelTimer = 0f;
         onePx = makeOnePx();
         timerFont = new BitmapFont();
@@ -117,6 +122,7 @@ public class LevelScreen implements Screen {
         hud = new Hud(assets.heartFull, assets.heartEmpty, onePx);
 
         cameraX = startX + player.w / 2f;
+        initialized = true;
     }
 
     /**
@@ -130,7 +136,7 @@ public class LevelScreen implements Screen {
         if (!gameOver) {
             levelTimer += dt;
         }
-        if (goBackToMenuIfNeeded()) return;
+        if (handlePauseRequest()) return;
 
         handleInput(dt);
         updateGame(dt);
@@ -177,12 +183,10 @@ public class LevelScreen implements Screen {
         return Math.min(delta, 1 / 30f);
     }
 
-    private boolean goBackToMenuIfNeeded() {
-        if (Gdx.input.isKeyJustPressed(Input.Keys.ESCAPE)) {
-            game.setScreen(new MenuScreen(game));
-            return true;
-        }
-        return false;
+    private boolean handlePauseRequest() {
+        if (!Gdx.input.isKeyJustPressed(Input.Keys.ESCAPE)) return false;
+        game.setScreen(new PauseScreen(game, this));
+        return true;
     }
 
     private void handleInput(float dt) {
@@ -244,13 +248,10 @@ public class LevelScreen implements Screen {
         }
         if (hazardZones == null) return;
         Rectangle hitBox = player.getBounds();
-        boolean belowGround = player.y + player.h * 0.2f < Constants.GROUND_H - 5f;
         for (Rectangle hazard : hazardZones) {
-            if (!belowGround) continue;
-            if (hitBox.overlaps(hazard)) {
-                player.health = 0;
-                return;
-            }
+            if (!hitBox.overlaps(hazard)) continue;
+            player.health = 0;
+            return;
         }
     }
 
