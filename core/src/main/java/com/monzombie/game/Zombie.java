@@ -8,6 +8,9 @@ import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.utils.Array;
 import com.monzombie.game.util.Constants;
 
+/**
+ * Basic zombie enemy handling patrol logic and rag-doll inspired deaths.
+ */
 public class Zombie {
     public static final int ALIVE = 0;
     public static final int DYING = 1;
@@ -34,6 +37,14 @@ public class Zombie {
     private int zoneIndex = -1;
     private float patrolDir;
 
+    /**
+     * Creates a zombie with a spawn position, patrol speed and walk animation.
+     *
+     * @param x starting x coordinate
+     * @param y ground aligned y coordinate
+     * @param speed movement speed along patrol zones
+     * @param animWalk animation played while the zombie is alive
+     */
     public Zombie(float x, float y, float speed, Animation<TextureRegion> animWalk) {
         this.x = x;
         this.y = y;
@@ -49,6 +60,12 @@ public class Zombie {
     }
 
     
+    /**
+     * Moves an alive zombie either toward the player or within its patrol box.
+     *
+     * @param dt frame delta time
+     * @param playerCenterX horizontal coordinate of the player center
+     */
     public void updateAlive(float dt, float playerCenterX) {
         float dir = selectDirection(playerCenterX);
         vx = dir * speed;
@@ -93,6 +110,14 @@ public class Zombie {
 
 
 
+    /**
+     * Updates the zombie state and resolves collisions with the level.
+     *
+     * @param dt frame delta time
+     * @param targetX player target position guiding the chase
+     * @param solids solid rectangles representing the level
+     * @return true when the zombie finished its death animation
+     */
     public boolean update(float dt, float targetX, Array<Rectangle> solids) {
         if (state == ALIVE) {
             updateAlive(dt, targetX);
@@ -104,6 +129,9 @@ public class Zombie {
     }
 
     
+    /**
+     * Triggers the rag-doll like falling animation and resets timers.
+     */
     public void startDeath() {
         state = DYING;
         deathT = 0f;
@@ -116,6 +144,13 @@ public class Zombie {
 
 
 
+    /**
+     * Applies gravity and rotation while the corpse bounces on the ground.
+     *
+     * @param dt frame delta time
+     * @param ground y position of the ground to stop the fall
+     * @return true when the corpse has been fading for long enough
+     */
     public boolean updateDying(float dt, float ground) {
         deathT += dt;
 
@@ -161,11 +196,21 @@ public class Zombie {
     }
 
     
+    /**
+     * Pushes the zombie slightly to avoid stacking after a collision.
+     *
+     * @param dx horizontal displacement in world units
+     */
     public void nudgeHorizontally(float dx) {
         x += dx;
         clampInsideZone();
     }
 
+    /**
+     * Draws the zombie with the appropriate orientation.
+     *
+     * @param b sprite batch tied to the world camera
+     */
     public void render(SpriteBatch b) {
         TextureRegion f = animWalk.getKeyFrame(animTime, true);
         if (flipLeft && !f.isFlipX()) f.flip(true, false);
@@ -173,18 +218,34 @@ public class Zombie {
         b.draw(f, x, y, w, h);
     }
 
+    /**
+     * Returns the bounding box used for collisions and attacks.
+     *
+     * @return cached rectangle representing the zombie body
+     */
     public Rectangle getBounds() {
         float marginX = w * 0.2f;
         bounds.set(x + marginX, y, w - marginX * 2f, h);
         return bounds;
     }
 
+    /**
+     * Assigns a patrol zone that constrains zombie movement.
+     *
+     * @param zone rectangle describing the zone, null for free roam
+     * @param index index of the zone for bookkeeping
+     */
     public void assignZone(Rectangle zone, int index) {
         this.patrolZone = zone;
         this.zoneIndex = zone != null ? index : -1;
         clampInsideZone();
     }
 
+    /**
+     * Gives the index of the patrol zone currently assigned.
+     *
+     * @return zero-based zone index or -1 when not assigned
+     */
     public int getZoneIndex() {
         return zoneIndex;
     }

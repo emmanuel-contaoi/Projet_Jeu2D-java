@@ -18,6 +18,9 @@ import com.badlogic.gdx.utils.viewport.Viewport;
 import com.monzombie.game.util.Constants;
 import com.monzombie.game.util.SettingsManager;
 
+/**
+ * Screen dedicated to tweaking brightness, key bindings and resolution settings.
+ */
 public class SettingsScreen implements Screen {
 
     private final MainGame game;
@@ -52,6 +55,12 @@ public class SettingsScreen implements Screen {
         {1920, 1080}
     };
 
+    /**
+     * Creates the settings screen that can return to the previous screen when done.
+     *
+     * @param game shared game instance
+     * @param previous screen to restore when the player exits settings
+     */
     public SettingsScreen(MainGame game, Screen previous) {
         this.game = game;
         this.previous = previous;
@@ -60,6 +69,9 @@ public class SettingsScreen implements Screen {
         viewport.apply(true);
     }
 
+    /**
+     * Initializes fonts, UI rectangles and helper textures.
+     */
     @Override
     public void show() {
         font = new BitmapFont();
@@ -84,6 +96,11 @@ public class SettingsScreen implements Screen {
         }
     }
 
+    /**
+     * Handles button interaction, listens for remapped keys and draws the menu.
+     *
+     * @param delta frame delta time
+     */
     @Override
     public void render(float delta) {
         Gdx.gl.glClearColor(0.05f, 0.06f, 0.08f, 1f);
@@ -237,11 +254,29 @@ public class SettingsScreen implements Screen {
         return t;
     }
 
+    /**
+     * Keeps the viewport aligned with the new window size.
+     */
     @Override public void resize(int width, int height) { viewport.update(width, height, true); }
+
+    /**
+     * Required by {@link Screen}; nothing specific needs to happen here.
+     */
     @Override public void pause() {}
+
+    /**
+     * Required by {@link Screen}; nothing specific needs to happen here.
+     */
     @Override public void resume() {}
+
+    /**
+     * Called when navigating away from the settings screen.
+     */
     @Override public void hide() {}
 
+    /**
+     * Releases textures and fonts allocated by this screen.
+     */
     @Override
     public void dispose() {
         if (white1x1 != null) white1x1.dispose();

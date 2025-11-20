@@ -6,14 +6,36 @@ import com.badlogic.gdx.graphics.g2d.TextureRegion;
 
 import java.util.Locale;
 
+/**
+ * Lightweight HUD that draws hearts, elapsed time and kill statistics.
+ */
 public class Hud {
     private final TextureRegion heartFull, heartEmpty;
     private final Texture onePx;
 
+    /**
+     * Builds the HUD with the heart icons and a single pixel texture drawn as text.
+     *
+     * @param heartFull texture region used for remaining health
+     * @param heartEmpty texture region used for missing health
+     * @param onePx texture used to render placeholder text
+     */
     public Hud(TextureRegion heartFull, TextureRegion heartEmpty, Texture onePx){
         this.heartFull = heartFull; this.heartEmpty = heartEmpty; this.onePx = onePx;
     }
 
+    /**
+     * Renders life hearts and simple text anchored to the screen corners.
+     *
+     * @param b sprite batch already set to the UI projection
+     * @param cameraX horizontal center of the camera
+     * @param viewportW viewport width in world units
+     * @param viewportH viewport height in world units
+     * @param health current health points
+     * @param healthMax maximum health points
+     * @param elapsedTime elapsed level time in seconds
+     * @param killScore number of kills performed so far
+     */
     public void render(SpriteBatch b, float cameraX, float viewportW, float viewportH,
                        int health, int healthMax, float elapsedTime, int killScore){
         float uiX = cameraX - viewportW/2f + 16f;

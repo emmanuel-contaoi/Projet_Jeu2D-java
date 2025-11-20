@@ -12,6 +12,9 @@ import com.monzombie.game.assets.HeroSpriteSet.Action;
 import com.monzombie.game.util.Constants;
 import com.monzombie.game.util.SettingsManager;
 
+/**
+ * Handles keyboard-driven movement, attacks and rendering for the selected hero.
+ */
 public class Player {
 
     
@@ -40,6 +43,14 @@ public class Player {
     private Action currentAction = Action.IDLE;
     private float actionTimer = 0f;
 
+    /**
+     * Builds the player entity at a spawn position using the provided assets.
+     *
+     * @param startX initial horizontal coordinate
+     * @param groundY base y value that matches the ground level
+     * @param sprites sprite set describing every animation
+     * @param settings key bindings and runtime tweaks
+     */
     public Player(float startX,
                   float groundY,
                   HeroSpriteSet sprites,
@@ -58,6 +69,12 @@ public class Player {
     
     
     
+    /**
+     * Reads keyboard input and updates movement, jumps and melee attacks.
+     *
+     * @param dt frame delta time
+     * @param zombies list of zombies affected by the sword swipe
+     */
     public void updateInput(float dt, Array<Zombie> zombies) {
         boolean moveLeft = isLeftPressed();
         boolean moveRight = isRightPressed();
@@ -179,6 +196,13 @@ public class Player {
     
     
     
+    /**
+     * Advances the physics simulation with gravity and collision resolution.
+     *
+     * @param dt frame delta time
+     * @param worldW width of the playable world used to clamp the hero
+     * @param solids collision rectangles describing the level
+     */
     public void physics(float dt, float worldW, Array<Rectangle> solids) {
         
         vy += Constants.GRAVITY * dt;
@@ -228,6 +252,11 @@ public class Player {
     
     
     
+    /**
+     * Draws the current animation frame with the shared sprite batch.
+     *
+     * @param b sprite batch already configured with the world camera
+     */
     public void render(SpriteBatch b) {
         TextureRegion frame = selectFrame();
         if (frame != null) {
@@ -244,6 +273,11 @@ public class Player {
     
     
     
+    /**
+     * Provides a conservative hit box centered inside the character.
+     *
+     * @return rectangle reused for collision checks
+     */
     public Rectangle getBounds() {
         float marginX = w * 0.2f;
         bounds.set(x + marginX, y, w - 2 * marginX, h);

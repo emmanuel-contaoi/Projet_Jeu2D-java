@@ -1,5 +1,8 @@
 package com.monzombie.game.util;
 
+/**
+ * Collection of gameplay and screen constants shared by multiple systems.
+ */
 public final class Constants {
     private Constants() {}
 

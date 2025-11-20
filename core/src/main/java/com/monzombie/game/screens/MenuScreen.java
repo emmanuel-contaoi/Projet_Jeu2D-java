@@ -17,6 +17,9 @@ import com.badlogic.gdx.utils.viewport.FitViewport;
 import com.badlogic.gdx.utils.viewport.Viewport;
 import com.monzombie.game.util.Constants;
 
+/**
+ * Main hub that exposes buttons for starting the game, viewing scores and adjusting settings.
+ */
 public class MenuScreen implements Screen {
 
     private final MainGame game;
@@ -43,6 +46,11 @@ public class MenuScreen implements Screen {
     private static final float BTN_W = 360f, BTN_H = 90f, BTN_GAP = 28f;
     private boolean pressingStart = false, pressingOption = false, pressingSettings = false, pressingExit = false;
 
+    /**
+     * Creates the menu screen linked to the provided game instance.
+     *
+     * @param game shared root game class
+     */
     public MenuScreen(MainGame game) {
         this.game = game;
         this.batch = game.batch;
@@ -50,6 +58,9 @@ public class MenuScreen implements Screen {
         viewport.apply(true);
     }
 
+    /**
+     * Loads fonts, buttons and background textures when the menu becomes active.
+     */
     @Override
     public void show() {
         font = new BitmapFont();
@@ -70,6 +81,11 @@ public class MenuScreen implements Screen {
         rExit.set(x, top - 3*(BTN_H + BTN_GAP), BTN_W, BTN_H);
     }
 
+    /**
+     * Updates button states, handles keyboard shortcuts and renders the menu.
+     *
+     * @param delta frame delta time
+     */
     @Override
     public void render(float delta) {
         updateBackground(delta);
@@ -176,10 +192,29 @@ public class MenuScreen implements Screen {
         return t;
     }
 
+    /**
+     * Propagates viewport changes when the window is resized.
+     */
     @Override public void resize(int width, int height) { viewport.update(width, height, true); }
+
+    /**
+     * No additional work is required when the menu is paused.
+     */
     @Override public void pause() {}
+
+    /**
+     * No additional work is required when the menu resumes.
+     */
     @Override public void resume() {}
+
+    /**
+     * Invoked when the menu is hidden; nothing special to do here.
+     */
     @Override public void hide() {}
+
+    /**
+     * Frees the textures and fonts allocated for the menu.
+     */
     @Override public void dispose() {
         if (bg != null) bg.dispose();
         if (white1x1 != null) white1x1.dispose();

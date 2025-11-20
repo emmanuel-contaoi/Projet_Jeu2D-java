@@ -21,9 +21,9 @@ import com.monzombie.game.util.ScoreManager;
 
 import java.util.Locale;
 
-
-
-
+/**
+ * Displays the local leaderboard and allows the player to return to the menu.
+ */
 public class LeaderboardScreen implements Screen {
 
     private final MainGame game;
@@ -39,6 +39,11 @@ public class LeaderboardScreen implements Screen {
     private final Vector3 tmp = new Vector3();
     private boolean pressingBack = false;
 
+    /**
+     * Builds the leaderboard screen using the shared SpriteBatch.
+     *
+     * @param game game instance exposing managers and settings
+     */
     public LeaderboardScreen(MainGame game) {
         this.game = game;
         this.batch = game.batch;
@@ -46,6 +51,9 @@ public class LeaderboardScreen implements Screen {
         viewport.apply(true);
     }
 
+    /**
+     * Loads the background, button texture and positions widgets.
+     */
     @Override
     public void show() {
         font = new BitmapFont();
@@ -63,6 +71,11 @@ public class LeaderboardScreen implements Screen {
         rBack.set((Constants.VW - btnW) / 2f, 60f, btnW, btnH);
     }
 
+    /**
+     * Handles button interactions and draws the leaderboard entries.
+     *
+     * @param delta frame delta time
+     */
     @Override
     public void render(float delta) {
         Gdx.gl.glClearColor(0.05f, 0.06f, 0.08f, 1f);
@@ -195,11 +208,29 @@ public class LeaderboardScreen implements Screen {
         return white1x1;
     }
 
+    /**
+     * Keeps the viewport aligned with window changes.
+     */
     @Override public void resize(int width, int height) { viewport.update(width, height, true); }
+
+    /**
+     * Required by {@link Screen}; no persistent work is needed here.
+     */
     @Override public void pause() {}
+
+    /**
+     * Required by {@link Screen}; no persistent work is needed here.
+     */
     @Override public void resume() {}
+
+    /**
+     * Called when leaving the screen; nothing to do at the moment.
+     */
     @Override public void hide() {}
 
+    /**
+     * Disposes the textures and fonts allocated for the leaderboard.
+     */
     @Override
     public void dispose() {
         if (bg != null) bg.dispose();

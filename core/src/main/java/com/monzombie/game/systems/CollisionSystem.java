@@ -7,6 +7,9 @@ import com.monzombie.game.Player;
 import com.monzombie.game.Zombie;
 import com.monzombie.game.util.Constants;
 
+/**
+ * Static helpers that resolve interactions between bullets, zombies and the player.
+ */
 public class CollisionSystem {
 
     private static boolean overlap(float ax,float ay,float aw,float ah,
@@ -16,6 +19,13 @@ public class CollisionSystem {
         return horizontal && vertical;
     }
 
+    /**
+     * Checks every bullet against every zombie and applies damage when they touch.
+     *
+     * @param bullets active bullets to test
+     * @param zombies zombies currently alive
+     * @return number of zombies killed during this pass
+     */
     public static int bulletsVsZombies(Array<Bullet> bullets, Array<Zombie> zombies){
         int kills = 0;
         for (int zi = zombies.size - 1; zi >= 0; zi--) {
@@ -40,6 +50,13 @@ public class CollisionSystem {
         return kills;
     }
 
+    /**
+     * Detects collisions between zombies and the player, inflicting damage and pushing them apart.
+     *
+     * @param zombies list of active zombies
+     * @param player player instance
+     * @param dt frame delta time used to cool down hit timers
+     */
     public static void zombiesVsPlayer(Array<Zombie> zombies, Player player, float dt){
         Rectangle playerBox = player.getBounds();
         for (Zombie z : zombies) {

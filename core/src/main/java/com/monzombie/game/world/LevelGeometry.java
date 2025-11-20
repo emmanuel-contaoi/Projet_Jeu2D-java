@@ -9,19 +9,18 @@ import com.badlogic.gdx.utils.Sort;
 import com.monzombie.game.util.Constants;
 import java.util.Comparator;
 
-
-
-
-
+/**
+ * Builds collision, hazard and spawn zones by analyzing the level background image.
+ */
 public class LevelGeometry {
 
     private static final String MAP_PATH = "bunker.jpg";
-    private static final float BOARD_SCAN_START = 0.45f;  
+    private static final float BOARD_SCAN_START = 0.45f;
     private static final float BOARD_SCAN_END   = 0.98f;
-    private static final float BOARD_MERGE_GAP  = 18f;    
+    private static final float BOARD_MERGE_GAP  = 18f;
     private static final float MIN_ZONE_WIDTH   = 140f;
     private static final float ZONE_PADDING     = 12f;
-    private static final float BOARD_HEIGHT     = 150f;   
+    private static final float BOARD_HEIGHT     = 150f;
     private static final float BOARD_SHRINK     = 12f;
     private static final float EXIT_CLEAR_W     = 200f;
     private static final float HOLE_SCAN_START  = 0.78f;
@@ -38,10 +37,21 @@ public class LevelGeometry {
     private final Array<Rectangle> zombieZones = new Array<>();
     private final float worldWidth;
 
+    /**
+     * Creates level geometry using the default bunker texture as the data source.
+     *
+     * @param worldWidth width of the playable world
+     */
     public LevelGeometry(float worldWidth) {
         this(worldWidth, MAP_PATH);
     }
 
+    /**
+     * Creates level geometry from a custom image.
+     *
+     * @param worldWidth width of the playable world
+     * @param mapPath asset path to the map texture
+     */
     public LevelGeometry(float worldWidth, String mapPath) {
         this.worldWidth = worldWidth;
         buildFromMap(mapPath);
@@ -419,14 +429,23 @@ public class LevelGeometry {
         }
     }
 
+    /**
+     * @return rectangles that should be treated as solid ground or walls.
+     */
     public Array<Rectangle> getSolids() {
         return solids;
     }
 
+    /**
+     * @return rectangles that kill the player upon collision.
+     */
     public Array<Rectangle> getHazards() {
         return hazards;
     }
 
+    /**
+     * @return patrol zones that also serve as spawn areas for zombies.
+     */
     public Array<Rectangle> getZombieZones() {
         return zombieZones;
     }

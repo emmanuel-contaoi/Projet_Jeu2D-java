@@ -10,12 +10,18 @@ import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.utils.Json;
 import com.badlogic.gdx.utils.JsonWriter;
 
+/**
+ * Loads, stores and applies gameplay settings and user preferences.
+ */
 public class SettingsManager {
 
     private static final String SAVE_FILE = "settings.json";
     private static final float MIN_BRIGHTNESS = 0.3f;
     private static final float MAX_BRIGHTNESS = 1f;
 
+    /**
+     * Serializable structure stored as JSON on disk.
+     */
     public static class Data {
         public float brightness = 1f;
         public int keyLeft = Input.Keys.Q;
@@ -29,61 +35,117 @@ public class SettingsManager {
     private final Data data = new Data();
     private final Json json = new Json();
 
+    /**
+     * Creates a new manager and loads settings from disk.
+     */
     public SettingsManager() {
         json.setOutputType(JsonWriter.OutputType.json);
         json.setIgnoreUnknownFields(true);
         load();
     }
 
+    /**
+     * Provides direct access to the mutable data object.
+     *
+     * @return settings data currently in memory
+     */
     public Data getData() {
         return data;
     }
 
+    /**
+     * Returns the clamped brightness value for overlay drawing.
+     *
+     * @return brightness between {@link #MIN_BRIGHTNESS} and {@link #MAX_BRIGHTNESS}
+     */
     public float getBrightness() {
         return MathUtils.clamp(data.brightness, MIN_BRIGHTNESS, MAX_BRIGHTNESS);
     }
 
+    /**
+     * Nudges the brightness and persists the new value.
+     *
+     * @param delta incremental change to apply
+     */
     public void adjustBrightness(float delta) {
         data.brightness = MathUtils.clamp(data.brightness + delta, MIN_BRIGHTNESS, MAX_BRIGHTNESS);
         save();
     }
 
+    /**
+     * @return keyboard key bound to moving left.
+     */
     public int getLeftKey() {
         return data.keyLeft;
     }
 
+    /**
+     * @return keyboard key bound to moving right.
+     */
     public int getRightKey() {
         return data.keyRight;
     }
 
+    /**
+     * @return keyboard key bound to jumping.
+     */
     public int getJumpKey() {
         return data.keyJump;
     }
 
+    /**
+     * @return keyboard key bound to melee attacks.
+     */
     public int getAttackKey() {
         return data.keyAttack;
     }
 
+    /**
+     * Saves a new key binding for moving left.
+     *
+     * @param key LibGDX key code
+     */
     public void setLeftKey(int key) {
         data.keyLeft = key;
         save();
     }
 
+    /**
+     * Saves a new key binding for moving right.
+     *
+     * @param key LibGDX key code
+     */
     public void setRightKey(int key) {
         data.keyRight = key;
         save();
     }
 
+    /**
+     * Saves a new key binding for jumping.
+     *
+     * @param key LibGDX key code
+     */
     public void setJumpKey(int key) {
         data.keyJump = key;
         save();
     }
 
+    /**
+     * Saves a new key binding for melee attacks.
+     *
+     * @param key LibGDX key code
+     */
     public void setAttackKey(int key) {
         data.keyAttack = key;
         save();
     }
 
+    /**
+     * Stores a new resolution and applies it immediately.
+     *
+     * @param width window width in pixels
+     * @param height window height in pixels
+     */
     public void setResolution(int width, int height) {
         data.resolutionWidth = width;
         data.resolutionHeight = height;
@@ -91,6 +153,9 @@ public class SettingsManager {
         applyResolution();
     }
 
+    /**
+     * Applies the requested resolution in windowed mode when possible.
+     */
     public void applyResolution() {
         if (Gdx.graphics == null) return;
         int w = Math.max(640, data.resolutionWidth);
@@ -99,6 +164,15 @@ public class SettingsManager {
         Gdx.graphics.setWindowedMode(w, h);
     }
 
+    /**
+     * Draws a translucent overlay to simulate lower brightness values.
+     *
+     * @param batch sprite batch currently rendering
+     * @param white 1x1 white texture
+     * @param startX x offset for drawing (useful in scrolling cameras)
+     * @param width overlay width
+     * @param height overlay height
+     */
     public void drawBrightnessOverlay(SpriteBatch batch, Texture white, float startX, float width, float height) {
         if (batch == null || white == null) return;
         float b = getBrightness();
@@ -109,6 +183,12 @@ public class SettingsManager {
         batch.setColor(old);
     }
 
+    /**
+     * Converts a LibGDX key code to a human-readable label.
+     *
+     * @param keyCode LibGDX key code
+     * @return printable string
+     */
     public String keyToString(int keyCode) {
         return Input.Keys.toString(keyCode);
     }

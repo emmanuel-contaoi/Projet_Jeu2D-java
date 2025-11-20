@@ -12,12 +12,9 @@ import com.badlogic.gdx.utils.viewport.FitViewport;
 import com.badlogic.gdx.utils.viewport.Viewport;
 import com.monzombie.game.util.Constants;
 
-
-
-
-
-
-
+/**
+ * Displays a short animated game over screen before sending the player back to the menu.
+ */
 public class GameOverScreen implements Screen {
 
     private static final float DISPLAY_TIME = 2f;
@@ -32,6 +29,12 @@ public class GameOverScreen implements Screen {
     private float timer = 0f;
     private boolean returning = false;
 
+    /**
+     * Builds the game over screen that remembers which level was last attempted.
+     *
+     * @param game shared game instance
+     * @param lastLevel level index used for UI or stats
+     */
     public GameOverScreen(MainGame game, int lastLevel) {
         this.game = game;
         this.batch = game.batch;
@@ -40,6 +43,9 @@ public class GameOverScreen implements Screen {
         viewport.apply(true);
     }
 
+    /**
+     * Loads the background texture and creates the brightness overlay.
+     */
     @Override
     public void show() {
         
@@ -53,6 +59,11 @@ public class GameOverScreen implements Screen {
         overlay1x1 = makeWhite();
     }
 
+    /**
+     * Draws the fading background and listens for user input to skip.
+     *
+     * @param delta frame delta time
+     */
     @Override
     public void render(float delta) {
         timer += delta;
@@ -108,6 +119,9 @@ public class GameOverScreen implements Screen {
         }
     }
 
+    /**
+     * Updates the viewport so the background remains centered.
+     */
     @Override
     public void resize(int width, int height) {
         viewport.update(width, height, true);
@@ -117,6 +131,9 @@ public class GameOverScreen implements Screen {
     @Override public void resume() {}
     @Override public void hide() {}
 
+    /**
+     * Releases temporary textures associated with this screen.
+     */
     @Override
     public void dispose() {
         if (background != null) background.dispose();

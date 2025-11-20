@@ -7,10 +7,9 @@ import com.badlogic.gdx.utils.Json;
 import com.badlogic.gdx.utils.JsonWriter;
 import com.badlogic.gdx.utils.TimeUtils;
 
-
-
-
-
+/**
+ * Stores best level completion times in a JSON file and exposes query methods.
+ */
 public class ScoreManager {
 
     private static final String SAVE_FILE = "scores.json";
@@ -18,6 +17,9 @@ public class ScoreManager {
     private final Array<ScoreEntry> scores = new Array<>();
     private final Json json;
 
+    /**
+     * Loads existing scores from disk or starts with an empty list.
+     */
     public ScoreManager() {
         json = new Json();
         json.setIgnoreUnknownFields(true);
@@ -25,6 +27,12 @@ public class ScoreManager {
         load();
     }
 
+    /**
+     * Records a new score entry with the provided level and completion time.
+     *
+     * @param level level number associated with the score
+     * @param timeSeconds completion time in seconds
+     */
     public void addScore(int level, float timeSeconds) {
         ScoreEntry entry = new ScoreEntry();
         entry.level = level;
@@ -34,6 +42,12 @@ public class ScoreManager {
         save();
     }
 
+    /**
+     * Returns the fastest completion times sorted in ascending order.
+     *
+     * @param max maximum number of entries to return
+     * @return copy of the best scores up to the requested amount
+     */
     public Array<ScoreEntry> getTopScores(int max) {
         Array<ScoreEntry> copy = new Array<>(scores);
         copy.sort((a, b) -> Float.compare(a.timeSeconds, b.timeSeconds));
@@ -77,6 +91,9 @@ public class ScoreManager {
         }
     }
 
+    /**
+     * Simple data container persisted as JSON on disk.
+     */
     public static class ScoreEntry {
         public int level;
         public float timeSeconds;

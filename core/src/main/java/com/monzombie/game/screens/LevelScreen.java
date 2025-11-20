@@ -28,6 +28,9 @@ import com.monzombie.game.world.LevelGeometry;
 
 import java.util.Locale;
 
+/**
+ * Main gameplay screen that manages player movement, zombies and level objectives.
+ */
 public class LevelScreen implements Screen {
 
     private final MainGame game;
@@ -61,6 +64,12 @@ public class LevelScreen implements Screen {
     private Array<Rectangle> zombieZones;
     private boolean debugColliders = true;
 
+    /**
+     * Creates a level screen for the requested stage id.
+     *
+     * @param game core game instance
+     * @param levelNumber 1-based level index used for goals and scores
+     */
     public LevelScreen(MainGame game, int levelNumber) {
         this.game = game;
         this.levelNumber = levelNumber;
@@ -72,6 +81,9 @@ public class LevelScreen implements Screen {
         viewport.apply(true);
     }
 
+    /**
+     * Loads the geometry, spawns the player and prepares HUD resources.
+     */
     @Override
     public void show() {
         levelTimer = 0f;
@@ -107,6 +119,11 @@ public class LevelScreen implements Screen {
         cameraX = startX + player.w / 2f;
     }
 
+    /**
+     * Updates the simulation and renders the entire level.
+     *
+     * @param delta frame delta time
+     */
     @Override
     public void render(float delta) {
         float dt = clampDelta(delta);
@@ -321,11 +338,29 @@ public class LevelScreen implements Screen {
         return t;
     }
 
+    /**
+     * Resizes the viewport while keeping the camera centered.
+     */
     @Override public void resize(int width, int height) { viewport.update(width, height, true); }
+
+    /**
+     * No special processing is required when the game is paused.
+     */
     @Override public void pause() {}
+
+    /**
+     * No special processing is required when the game resumes.
+     */
     @Override public void resume() {}
+
+    /**
+     * Called when exiting the level screen; gameplay already stops elsewhere.
+     */
     @Override public void hide() {}
 
+    /**
+     * Disposes temporary textures and fonts used only by this level instance.
+     */
     @Override
     public void dispose() {
         if (onePx != null) onePx.dispose();

@@ -19,6 +19,9 @@ import com.badlogic.gdx.utils.viewport.Viewport;
 import TestForMain.MainGame;
 import com.monzombie.game.util.Constants;
 
+/**
+ * Screen that lets the player pick between the available heroes before a level starts.
+ */
 public class CharacterSelectScreen implements Screen {
 
     private final MainGame game;
@@ -55,6 +58,12 @@ public class CharacterSelectScreen implements Screen {
     private Animation<TextureRegion> animChar1, animChar2;
     private float animTime = 0f;
 
+    /**
+     * Creates the selection screen for a specific level.
+     *
+     * @param game shared game instance
+     * @param levelNumber level that will be loaded after choosing a hero
+     */
     public CharacterSelectScreen(MainGame game, int levelNumber) {
         this.game = game;
         this.levelNumber = levelNumber;
@@ -63,6 +72,9 @@ public class CharacterSelectScreen implements Screen {
         viewport.apply(true);
     }
 
+    /**
+     * Allocates fonts, textures and cards when the screen becomes active.
+     */
     @Override
     public void show() {
         font = new BitmapFont();
@@ -92,6 +104,11 @@ public class CharacterSelectScreen implements Screen {
         rBack.set((Constants.VW - BTN_W) / 2f, 50f, BTN_W, BTN_H);
     }
 
+    /**
+     * Handles button presses, updates animations and draws the selection UI.
+     *
+     * @param delta frame delta time
+     */
     @Override
     public void render(float delta) {
         animTime += delta;
@@ -205,11 +222,29 @@ public class CharacterSelectScreen implements Screen {
 
     private Texture getWhite() { return white1x1; }
 
+    /**
+     * Keeps the UI centered when the window is resized.
+     */
     @Override public void resize(int width, int height) { viewport.update(width,height,true); }
+
+    /**
+     * No-op but required by the {@link Screen} contract.
+     */
     @Override public void pause() {}
+
+    /**
+     * No-op but required by the {@link Screen} contract.
+     */
     @Override public void resume() {}
+
+    /**
+     * Invoked when leaving the screen; nothing to clean yet.
+     */
     @Override public void hide() {}
 
+    /**
+     * Releases the temporary assets allocated by this screen.
+     */
     @Override
     public void dispose() {
         if (bg != null) bg.dispose();

@@ -8,11 +8,19 @@ import com.badlogic.gdx.utils.Array;
 import com.monzombie.game.Zombie;
 import com.monzombie.game.util.Constants;
 
+/**
+ * Creates zombie instances based on predefined patrol zones.
+ */
 public class Spawner {
 
     private Array<Rectangle> zones = new Array<>();
     private boolean populated = false;
 
+    /**
+     * Provides the spawn zones detected from the environment.
+     *
+     * @param zones list of rectangles used for patrol and spawn positions
+     */
     public void setZones(Array<Rectangle> zones) {
         this.zones = zones != null ? zones : new Array<Rectangle>();
         populated = false;
@@ -22,6 +30,12 @@ public class Spawner {
 
 
 
+    /**
+     * Populates each zone with a handful of zombies until the global cap is reached.
+     *
+     * @param zombies destination array that receives the spawned zombies
+     * @param zWalk animation shared by every zombie
+     */
     public void populateInitialZombies(Array<Zombie> zombies, Animation<TextureRegion> zWalk) {
         if (populated) return;
         if (zones == null || zones.size == 0) return;

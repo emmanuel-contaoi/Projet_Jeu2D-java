@@ -17,6 +17,9 @@ import com.badlogic.gdx.utils.viewport.Viewport;
 import TestForMain.MainGame;
 import com.monzombie.game.util.Constants;
 
+/**
+ * Menu that lets the player pick which level to launch and shows lock states.
+ */
 public class LevelSelectScreen implements Screen {
 
     private final MainGame game;
@@ -46,6 +49,11 @@ public class LevelSelectScreen implements Screen {
     private static final float BTN_H = 90f;
     private static final float BTN_GAP = 28f;
 
+    /**
+     * Creates the level selection screen tied to the shared SpriteBatch.
+     *
+     * @param game game instance exposing current progress
+     */
     public LevelSelectScreen(MainGame game) {
         this.game = game;
         this.batch = game.batch;
@@ -53,6 +61,9 @@ public class LevelSelectScreen implements Screen {
         viewport.apply(true);
     }
 
+    /**
+     * Loads fonts and background textures when the screen first opens.
+     */
     @Override
     public void show() {
         font = new BitmapFont();
@@ -80,6 +91,11 @@ public class LevelSelectScreen implements Screen {
         rBack.set(x, top - 3 * (BTN_H + BTN_GAP), BTN_W, BTN_H);
     }
 
+    /**
+     * Animates the background, processes button input and draws the UI.
+     *
+     * @param delta frame delta time
+     */
     @Override
     public void render(float delta) {
         float dt = Math.min(delta, 1/30f);
@@ -237,11 +253,29 @@ public class LevelSelectScreen implements Screen {
         return white1x1;
     }
 
+    /**
+     * Updates the viewport with the new window dimensions.
+     */
     @Override public void resize(int width, int height) { viewport.update(width, height, true); }
+
+    /**
+     * Part of the {@link Screen} interface; nothing special to handle yet.
+     */
     @Override public void pause() {}
+
+    /**
+     * Part of the {@link Screen} interface; nothing special to handle yet.
+     */
     @Override public void resume() {}
+
+    /**
+     * Called when switching to another screen; no cleanup needed here.
+     */
     @Override public void hide() {}
 
+    /**
+     * Disposes textures and fonts owned by this menu.
+     */
     @Override
     public void dispose() {
         if (bg != null) bg.dispose();

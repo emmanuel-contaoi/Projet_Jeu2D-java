@@ -8,6 +8,9 @@ import com.badlogic.gdx.graphics.g2d.Animation;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.utils.Array;
 
+/**
+ * Loads and owns every texture and animation used across the game.
+ */
 public class Assets {
 
     
@@ -46,6 +49,9 @@ public class Assets {
     
     public TextureRegion heartFull, heartEmpty;
 
+    /**
+     * Loads textures, builds hero animations and slices UI sprites.
+     */
     public void load() {
         bg = loadTexture("bunker.jpg");
         soldierSheet = loadTexture("sprite sheet 8-bit 2.png");
@@ -218,6 +224,12 @@ public class Assets {
         }
     }
 
+    /**
+     * Retrieves the sprite set matching the provided hero name.
+     *
+     * @param heroName either "Hugo" or "Alexis"
+     * @return sprite set for the hero, falling back to the other one if needed
+     */
     public HeroSpriteSet getHeroSpriteSet(String heroName) {
         if ("Alexis".equalsIgnoreCase(heroName)) {
             return alexisSprites != null ? alexisSprites : hugoSprites;
@@ -225,6 +237,9 @@ public class Assets {
         return hugoSprites != null ? hugoSprites : alexisSprites;
     }
 
+    /**
+     * Releases every texture created by this asset bundle.
+     */
     public void dispose() {
         for (Texture t : new Texture[]{
             bg, groundTile, soldierSheet, zombieSheet, hearts,
@@ -237,6 +252,12 @@ public class Assets {
     }
 
     
+    /**
+     * Computes the world width that keeps the background aspect ratio.
+     *
+     * @param viewportH height of the camera viewport
+     * @return scaled world width
+     */
     public float computeWorldWidth(float viewportH){
         float scale = viewportH / bg.getHeight();
         return bg.getWidth()*scale;

@@ -5,14 +5,20 @@ import com.badlogic.gdx.graphics.g2d.Animation;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.utils.Array;
 
-
-
-
-
+/**
+ * Convenience wrapper around a texture that exposes row or column based animations.
+ */
 public class SpriteSheet {
 
     private final TextureRegion[][] cells;
 
+    /**
+     * Splits the supplied texture into evenly sized frames.
+     *
+     * @param texture sprite sheet texture
+     * @param columns number of horizontal slices
+     * @param rows number of vertical slices
+     */
     public SpriteSheet(Texture texture, int columns, int rows) {
         if (texture == null || columns <= 0 || rows <= 0) {
             cells = new TextureRegion[0][0];
@@ -23,6 +29,14 @@ public class SpriteSheet {
         cells = TextureRegion.split(texture, frameW, frameH);
     }
 
+    /**
+     * Creates an animation using every frame of a single row.
+     *
+     * @param rowIndex index of the row to sample
+     * @param fps target frames per second
+     * @param playMode LibGDX play mode
+     * @return animation or null when the sheet is invalid
+     */
     public Animation<TextureRegion> animationFromRow(int rowIndex, float fps, Animation.PlayMode playMode) {
         if (cells.length == 0) return null;
         int row = clamp(rowIndex, 0, cells.length - 1);
@@ -37,6 +51,14 @@ public class SpriteSheet {
         return animation;
     }
 
+    /**
+     * Creates an animation made from one column, useful for tall strips.
+     *
+     * @param columnIndex index of the column to sample
+     * @param fps target frames per second
+     * @param playMode LibGDX play mode
+     * @return animation or null when the sheet is invalid
+     */
     public Animation<TextureRegion> animationFromColumn(int columnIndex, float fps, Animation.PlayMode playMode) {
         if (cells.length == 0) return null;
         int rows = cells.length;

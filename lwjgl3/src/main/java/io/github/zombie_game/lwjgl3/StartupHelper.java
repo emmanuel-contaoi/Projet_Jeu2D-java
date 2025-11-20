@@ -33,14 +33,9 @@ import static org.lwjgl.system.macosx.ObjCRuntime.objc_getClass;
 import static org.lwjgl.system.macosx.ObjCRuntime.sel_getUid;
 
 
-
-
-
-
-
-
-
-
+/**
+ * Detects whether the JVM should be restarted on macOS so LWJGL can run on the main thread.
+ */
 public class StartupHelper {
 
     private static final String JVM_RESTARTED_ARG = "jvmIsRestarted";
@@ -51,28 +46,12 @@ public class StartupHelper {
 
     
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+    /**
+     * Relaunches the JVM on macOS when the current thread does not satisfy LWJGL requirements.
+     *
+     * @param redirectOutput when true, streams the child process output
+     * @return true if a restart was triggered
+     */
     public static boolean startNewJvmIfRequired(boolean redirectOutput) {
         String osName = System.getProperty("os.name").toLowerCase();
         if (!osName.contains("mac")) {
@@ -185,19 +164,11 @@ public class StartupHelper {
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
+    /**
+     * Convenience overload that redirects child output by default.
+     *
+     * @return true if a restart was triggered
+     */
     public static boolean startNewJvmIfRequired() {
         return startNewJvmIfRequired(true);
     }
