@@ -171,6 +171,8 @@ public class Player {
         return pickFrame(groundRightFrames);
     }
 
+    // line of code
+
     private TextureRegion pickFrame(Array<TextureRegion> frames) {
         if (frames == null || frames.size == 0) return null;
         int fps = 6; // simple animation lente
