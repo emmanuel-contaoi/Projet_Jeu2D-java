@@ -35,7 +35,7 @@ public class CharacterSelectScreen implements Screen {
     private BitmapFont font;
     private final GlyphLayout layout = new GlyphLayout();
 
-    // 👉 Seulement 2 personnages
+    
     private final Rectangle rChar1 = new Rectangle();
     private final Rectangle rChar2 = new Rectangle();
     private final Rectangle rBack  = new Rectangle();
@@ -50,7 +50,7 @@ public class CharacterSelectScreen implements Screen {
     private static final float BTN_W = 360f;
     private static final float BTN_H = 80f;
 
-    // animations
+    
     private Texture texChar1, texChar2;
     private Animation<TextureRegion> animChar1, animChar2;
     private float animTime = 0f;
@@ -70,17 +70,17 @@ public class CharacterSelectScreen implements Screen {
 
         white1x1 = makeWhite();
 
-        // fond
+        
         bg = new Texture("menu_background.png");
 
-        // PERSONNAGES
-        texChar1 = new Texture("sprit2.png");     // garçon
+        
+        texChar1 = new Texture("sprit2.png");     
         animChar1 = buildSimpleAnimation(texChar1, 4, 5, 10f);
 
-        texChar2 = new Texture("spirit1.png");    // fille
+        texChar2 = new Texture("spirit1.png");    
         animChar2 = buildSimpleAnimation(texChar2, 4, 4, 10f);
 
-        // POSITIONNEMENT (2 cartes centrées)
+        
         float totalW = CARD_W * 2 + CARD_GAP;
         float startX = (Constants.VW - totalW) / 2f;
         float centerY = Constants.VH / 2f + 40f;
@@ -88,7 +88,7 @@ public class CharacterSelectScreen implements Screen {
         rChar1.set(startX,                 centerY - CARD_H / 2f, CARD_W, CARD_H);
         rChar2.set(startX + CARD_W + CARD_GAP, centerY - CARD_H / 2f, CARD_W, CARD_H);
 
-        // bouton retour
+        
         rBack.set((Constants.VW - BTN_W) / 2f, 50f, BTN_W, BTN_H);
     }
 
@@ -139,7 +139,7 @@ public class CharacterSelectScreen implements Screen {
         batch.end();
     }
 
-    // -------------- UTILITAIRES -------------------
+    
 
     private Animation<TextureRegion> buildSimpleAnimation(Texture tex, int cols, int rows, float fps) {
         TextureRegion[][] grid = TextureRegion.split(tex, tex.getWidth()/cols, tex.getHeight()/rows);
@@ -159,14 +159,14 @@ public class CharacterSelectScreen implements Screen {
         batch.setColor(fill);
         batch.draw(getWhite(), r.x, r.y, r.width, r.height);
 
-        // bord
+        
         batch.setColor(Color.WHITE);
         batch.draw(getWhite(), r.x, r.y, r.width, 4);
         batch.draw(getWhite(), r.x, r.y+r.height-4, r.width, 4);
         batch.draw(getWhite(), r.x, r.y, 4, r.height);
         batch.draw(getWhite(), r.x+r.width-4, r.y, 4, r.height);
 
-        // sprite animé
+        
         TextureRegion frame = anim.getKeyFrame(animTime);
         float imgH = r.height - 80f;
         float imgW = imgH * (frame.getRegionWidth() / (float) frame.getRegionHeight());
@@ -175,7 +175,7 @@ public class CharacterSelectScreen implements Screen {
 
         batch.draw(frame, imgX, imgY, imgW, imgH);
 
-        // nom
+        
         layout.setText(font, name);
         font.draw(batch, name, r.x + r.width/2f - layout.width/2f, r.y + r.height - 10f);
     }

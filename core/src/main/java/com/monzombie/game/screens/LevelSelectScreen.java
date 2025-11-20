@@ -23,12 +23,12 @@ public class LevelSelectScreen implements Screen {
     private final SpriteBatch batch;
     private final Viewport viewport;
 
-    // fond animé
+    
     private Texture bg;
     private float bgOffsetX = 0f;
     private float bgSpeed = 20f;
 
-    // dessin des boutons
+    
     private Texture white1x1;
     private BitmapFont font;
     private final GlyphLayout layout = new GlyphLayout();
@@ -60,7 +60,7 @@ public class LevelSelectScreen implements Screen {
 
         white1x1 = makeWhite();
 
-        // fond : priorité au menu_background, sinon bunker1
+        
         if (Gdx.files.internal("menu_background.png").exists()) {
             bg = new Texture("menu_background.png");
         } else if (Gdx.files.internal("bunker1.jpg").exists()) {
@@ -70,7 +70,7 @@ public class LevelSelectScreen implements Screen {
             bg.setFilter(Texture.TextureFilter.Nearest, Texture.TextureFilter.Nearest);
         }
 
-        // position des boutons au centre
+        
         float x = (Constants.VW - BTN_W) / 2f;
         float top = Constants.VH / 2f + BTN_H + BTN_GAP;
 
@@ -94,26 +94,28 @@ public class LevelSelectScreen implements Screen {
         boolean justDown = Gdx.input.justTouched();
         boolean down = Gdx.input.isTouched();
         boolean justUp = !down && (pressingL1 || pressingL2 || pressingL3 || pressingBack);
+        boolean lvl2Unlocked = game.isLevelUnlocked(2);
+        boolean lvl3Unlocked = game.isLevelUnlocked(3);
 
         if (justDown) {
             pressingL1   = rLvl1.contains(mx, my);
-            pressingL2   = rLvl2.contains(mx, my);
-            pressingL3   = rLvl3.contains(mx, my);
+            pressingL2   = lvl2Unlocked && rLvl2.contains(mx, my);
+            pressingL3   = lvl3Unlocked && rLvl3.contains(mx, my);
             pressingBack = rBack.contains(mx, my);
         }
 
         if (justUp) {
             if (pressingL1 && rLvl1.contains(mx,my)) {
-                // 👉 NOUVEAU : on passe par la sélection de personnages
+                
                 game.setScreen(new CharacterSelectScreen(game, 1));
                 return;
             }
-            if (pressingL2 && rLvl2.contains(mx,my)) {
-                // tu peux plus tard mettre un CharacterSelectScreen(game, 2)
+            if (pressingL2 && lvl2Unlocked && rLvl2.contains(mx,my)) {
+                
                 System.out.println("Niveau 2 pas encore implémenté");
             }
-            if (pressingL3 && rLvl3.contains(mx,my)) {
-                // idem pour le niveau 3
+            if (pressingL3 && lvl3Unlocked && rLvl3.contains(mx,my)) {
+                
                 System.out.println("Niveau 3 pas encore implémenté");
             }
             if (pressingBack && rBack.contains(mx,my)) {
@@ -133,15 +135,23 @@ public class LevelSelectScreen implements Screen {
 
         drawAnimatedBackground();
 
-        drawButton(rLvl1, "NIVEAU 1", rLvl1.contains(mx,my), pressingL1);
-        drawButton(rLvl2, "NIVEAU 2", rLvl2.contains(mx,my), pressingL2);
-        drawButton(rLvl3, "NIVEAU 3", rLvl3.contains(mx,my), pressingL3);
-        drawButton(rBack, "RETOUR",   rBack.contains(mx,my), pressingBack);
+        boolean hoverL1 = rLvl1.contains(mx, my);
+        boolean hoverL2 = rLvl2.contains(mx, my);
+        boolean hoverL3 = rLvl3.contains(mx, my);
+        boolean hoverBack = rBack.contains(mx, my);
+
+        drawButton(rLvl1, "NIVEAU 1",
+            hoverL1, pressingL1, true, game.isLevelCompleted(1));
+        drawButton(rLvl2, "NIVEAU 2",
+            hoverL2, pressingL2, lvl2Unlocked, game.isLevelCompleted(2));
+        drawButton(rLvl3, "NIVEAU 3",
+            hoverL3, pressingL3, lvl3Unlocked, game.isLevelCompleted(3));
+        drawButton(rBack, "RETOUR",   hoverBack, pressingBack, true, false);
 
         batch.end();
     }
 
-    // -------------------- fond animé --------------------
+    
 
     private void updateBackground(float dt) {
         if (bg == null) return;
@@ -164,16 +174,17 @@ public class LevelSelectScreen implements Screen {
         batch.setColor(Color.WHITE);
     }
 
-    // -------------------- boutons --------------------
+    
 
     private void drawButton(Rectangle r, String text,
-                            boolean hover, boolean pressed) {
+                            boolean hover, boolean pressed,
+                            boolean enabled, boolean completed) {
 
-        Color base = new Color(0.16f,0.18f,0.22f,0.95f);
+        Color base = enabled ? new Color(0.16f,0.18f,0.22f,0.95f) : new Color(0.12f,0.12f,0.12f,0.8f);
         Color hoverCol = new Color(0.24f,0.49f,0.86f,0.95f);
-        Color fill = hover ? hoverCol : base;
+        Color fill = hover && enabled ? hoverCol : base;
 
-        // ombre
+        
         batch.setColor(0,0,0,0.35f);
         batch.draw(getWhite(), r.x+4, r.y-4, r.width, r.height);
 
@@ -183,11 +194,11 @@ public class LevelSelectScreen implements Screen {
         float x = r.x + (r.width - w)/2f;
         float y = r.y + (r.height - h)/2f;
 
-        // fond
+        
         batch.setColor(fill);
         batch.draw(getWhite(), x, y, w, h);
 
-        // bord
+        
         batch.setColor(0.92f,0.94f,0.98f,1f);
         float b = 4f;
         batch.draw(getWhite(), x, y, w, b);
@@ -195,15 +206,19 @@ public class LevelSelectScreen implements Screen {
         batch.draw(getWhite(), x, y, b, h);
         batch.draw(getWhite(), x+w-b, y, b, h);
 
-        // texte
+        
         batch.setColor(Color.WHITE);
-        layout.setText(font, text);
+        String label = text;
+        if (!enabled) label += " - VERROUILLÉ";
+        else if (completed) label += " - OK";
+
+        layout.setText(font, label);
         font.draw(batch, layout,
             x + (w - layout.width)/2f,
             y + (h + layout.height)/2f);
     }
 
-    // -------------------- utilitaires / cycle --------------------
+    
 
     private Texture makeWhite() {
         Pixmap pm = new Pixmap(1,1, Pixmap.Format.RGBA8888);

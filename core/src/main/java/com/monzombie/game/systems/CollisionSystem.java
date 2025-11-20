@@ -1,9 +1,11 @@
 package com.monzombie.game.systems;
 
+import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.utils.Array;
 import com.monzombie.game.Bullet;
 import com.monzombie.game.Player;
 import com.monzombie.game.Zombie;
+import com.monzombie.game.util.Constants;
 
 public class CollisionSystem {
 
@@ -14,39 +16,72 @@ public class CollisionSystem {
         return horizontal && vertical;
     }
 
-    public static void bulletsVsZombies(Array<Bullet> bullets, Array<Zombie> zombies){
+    public static int bulletsVsZombies(Array<Bullet> bullets, Array<Zombie> zombies){
+        int kills = 0;
         for (int zi = zombies.size - 1; zi >= 0; zi--) {
             Zombie z = zombies.get(zi);
             if (z.state != Zombie.ALIVE) continue;
 
+            Rectangle zBox = z.getBounds();
             for (int bi = bullets.size - 1; bi >= 0; bi--) {
                 Bullet b = bullets.get(bi);
-                boolean hit = overlap(b.x, b.y, 10, 3, z.x, z.y, z.w, z.h);
+                boolean hit = overlap(b.x, b.y, 10, 3, zBox.x, zBox.y, zBox.width, zBox.height);
                 if (!hit) continue;
 
                 z.hp -= 50;
                 bullets.removeIndex(bi);
-                if (z.hp <= 0) z.startDeath();
-                break; // on évite plusieurs balles sur le même zombie ce frame
+                if (z.hp <= 0) {
+                    z.startDeath();
+                    kills++;
+                }
+                break; 
             }
         }
+        return kills;
     }
 
-    public static void zombiesVsPlayer(Array<Zombie> zombies, Player player){
+    public static void zombiesVsPlayer(Array<Zombie> zombies, Player player, float dt){
+        Rectangle playerBox = player.getBounds();
         for (Zombie z : zombies) {
             if (z.state != Zombie.ALIVE) continue;
 
+            Rectangle zBox = z.getBounds();
             boolean touchesPlayer = overlap(
-                z.x, z.y, z.w, z.h,
-                player.x, player.y, player.w, player.h
+                zBox.x, zBox.y, zBox.width, zBox.height,
+                playerBox.x, playerBox.y, playerBox.width, playerBox.height
             );
 
-            if (touchesPlayer && z.hitCooldown <= 0f) {
-                z.hitCooldown = 0.8f;
-                player.health = Math.max(0, player.health - 10);
+            if (touchesPlayer) {
+                if (z.hitCooldown <= 0f) {
+                    z.hitCooldown = 0.8f;
+                    player.health = Math.max(0, player.health - Constants.ZOMBIE_DAMAGE);
+                }
+                separatePlayerAndZombie(z, playerBox, zBox);
             }
 
-            if (z.hitCooldown > 0f) z.hitCooldown -= 1 / 60f; // approx
+            if (z.hitCooldown > 0f) {
+                z.hitCooldown -= dt;
+                if (z.hitCooldown < 0f) z.hitCooldown = 0f;
+            }
+            playerBox = player.getBounds();
+        }
+    }
+
+    private static void separatePlayerAndZombie(Zombie zombie,
+                                                Rectangle playerBox, Rectangle zBox) {
+        float overlapW = Math.min(playerBox.x + playerBox.width, zBox.x + zBox.width)
+            - Math.max(playerBox.x, zBox.x);
+        if (overlapW <= 0f) return;
+
+        float push = overlapW + 1f;
+        float playerCenter = playerBox.x + playerBox.width / 2f;
+        float zombieCenter = zBox.x + zBox.width / 2f;
+        if (playerCenter < zombieCenter) {
+            zombie.nudgeHorizontally(push);
+            if (zombie.vx < 0f) zombie.vx = 0f;
+        } else {
+            zombie.nudgeHorizontally(-push);
+            if (zombie.vx > 0f) zombie.vx = 0f;
         }
     }
 }

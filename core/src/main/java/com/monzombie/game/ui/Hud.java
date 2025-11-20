@@ -4,6 +4,8 @@ import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 
+import java.util.Locale;
+
 public class Hud {
     private final TextureRegion heartFull, heartEmpty;
     private final Texture onePx;
@@ -12,12 +14,18 @@ public class Hud {
         this.heartFull = heartFull; this.heartEmpty = heartEmpty; this.onePx = onePx;
     }
 
-    public void render(SpriteBatch b, float cameraX, float viewportW, float viewportH, int health, int healthMax, int score){
+    public void render(SpriteBatch b, float cameraX, float viewportW, float viewportH,
+                       int health, int healthMax, float elapsedTime, int killScore){
         float uiX = cameraX - viewportW/2f + 16f;
         float uiY = viewportH - 16f - 36f;
 
-        int heartsTotal = Math.max(1, healthMax / 10);
-        int fullCount   = Math.max(0, Math.min(heartsTotal, (int)Math.floor(health / 10f)));
+        boolean useDirectHearts = healthMax <= 20;
+        int heartsTotal = useDirectHearts
+            ? Math.max(1, healthMax)
+            : Math.max(1, Math.round(healthMax / 10f));
+        int fullCount = useDirectHearts
+            ? Math.max(0, Math.min(heartsTotal, health))
+            : Math.max(0, Math.min(heartsTotal, Math.round(health / 10f)));
 
         float size = 32f, gap = 6f;
         for (int i=0;i<heartsTotal;i++){
@@ -25,9 +33,11 @@ public class Hud {
             b.draw(r, uiX + i * (size + gap), uiY, size, size);
         }
 
-        // petit score en texte "pixel" minimaliste
-        float sx = uiX, sy = uiY - 18;
-        drawText(b, "Score: "+score, sx, sy);
+        
+        float sx = uiX;
+        float sy = uiY - 18;
+        drawText(b, "Temps: " + formatTime(elapsedTime), sx, sy);
+        drawText(b, "Kills: " + killScore, sx, sy - 20);
     }
 
     private void drawText(SpriteBatch b, String txt, float x, float y){
@@ -38,5 +48,11 @@ public class Hud {
             b.draw(onePx, cx, y, 6, 12);
             cx += 8;
         }
+    }
+
+    private String formatTime(float elapsed) {
+        int minutes = (int) (elapsed / 60f);
+        float seconds = elapsed - minutes * 60f;
+        return String.format(Locale.US, "%02d:%05.2f", minutes, seconds);
     }
 }

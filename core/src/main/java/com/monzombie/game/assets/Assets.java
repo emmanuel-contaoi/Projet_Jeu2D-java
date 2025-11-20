@@ -10,40 +10,40 @@ import com.badlogic.gdx.utils.Array;
 
 public class Assets {
 
-    // Textures
-    public Texture bg;                // bunker.jpg
-    public Texture groundTile;        // générée
-    public Texture soldierSheet;      // sprite sheet 8-bit 2.png
-    public Texture zombieSheet;       // zombie_sheet.png
-    public Texture hearts;            // hearts.png
+    
+    public Texture bg;                
+    public Texture groundTile;        
+    public Texture soldierSheet;      
+    public Texture zombieSheet;       
+    public Texture hearts;            
     public Texture hugoSwordFL;
     public Texture hugoSwordFR;
     public Texture hugoJumpFL;
     public Texture hugoJumpFR;
+    public Texture hugoMitrailletteFL;
+    public Texture hugoMitrailletteFR;
+    public Texture hugoPistoletFL;
+    public Texture hugoPistoletFR;
     public Texture alexisSwordFL;
     public Texture alexisSwordFR;
     public Texture alexisJumpFL;
     public Texture alexisJumpFR;
+    public Texture alexisMitrailletteFL;
+    public Texture alexisMitrailletteFR;
+    public Texture alexisPistoletFL;
+    public Texture alexisPistoletFR;
 
-    // simples "animations" des héros (liste de frames)
-    public Array<TextureRegion> hugoGroundL = new Array<>();
-    public Array<TextureRegion> hugoGroundR = new Array<>();
-    public Array<TextureRegion> hugoJumpL = new Array<>();
-    public Array<TextureRegion> hugoJumpR = new Array<>();
+    public HeroSpriteSet hugoSprites;
+    public HeroSpriteSet alexisSprites;
 
-    public Array<TextureRegion> alexisGroundL = new Array<>();
-    public Array<TextureRegion> alexisGroundR = new Array<>();
-    public Array<TextureRegion> alexisJumpL = new Array<>();
-    public Array<TextureRegion> alexisJumpR = new Array<>();
-
-    // Animations player
+    
     public Animation<TextureRegion> animWalk, animRun, animShot;
     public TextureRegion frameIdle;
 
-    // Animations zombie
+    
     public Animation<TextureRegion> zombieWalk;
 
-    // Hearts
+    
     public TextureRegion heartFull, heartEmpty;
 
     public void load() {
@@ -55,20 +55,30 @@ public class Assets {
         hugoSwordFR  = loadTexture("HugoSwordFR.png");
         hugoJumpFL   = loadTexture("HugoJumpingFL.png");
         hugoJumpFR   = loadTexture("HugoJumpingFR.png");
+        hugoMitrailletteFL = loadTexture("HugoMitrailletteFL.png");
+        hugoMitrailletteFR = loadTexture("HugoMitrailletteFR.png");
+        hugoPistoletFL = loadTexture("HugoPistoletFL.png");
+        hugoPistoletFR = loadTexture("HugoPistoletFR.png");
         alexisSwordFL = loadTexture("AlexisSwordFL.png");
         alexisSwordFR = loadTexture("AlexisSwordFR.png");
         alexisJumpFL  = loadTexture("AlexisJumpingFL.png");
         alexisJumpFR  = loadTexture("AlexisJumpingFR.png");
+        alexisMitrailletteFL = loadTexture("AlexisMitrailletteFL.png");
+        alexisMitrailletteFR = loadTexture("AlexisMitrailletteFR.png");
+        alexisPistoletFL = loadTexture("AlexisPistoletFL.png");
+        alexisPistoletFR = loadTexture("AlexisPistoletFR.png");
 
-        // filtres pixel
+        
         for (Texture t : new Texture[]{
             bg, soldierSheet, zombieSheet, hearts,
             hugoSwordFL, hugoSwordFR, hugoJumpFL, hugoJumpFR,
-            alexisSwordFL, alexisSwordFR, alexisJumpFL, alexisJumpFR
+            hugoMitrailletteFL, hugoMitrailletteFR, hugoPistoletFL, hugoPistoletFR,
+            alexisSwordFL, alexisSwordFR, alexisJumpFL, alexisJumpFR,
+            alexisMitrailletteFL, alexisMitrailletteFR, alexisPistoletFL, alexisPistoletFR
         })
             if (t != null) t.setFilter(Texture.TextureFilter.Nearest, Texture.TextureFilter.Nearest);
 
-        // ground tile
+        
         groundTile = makeGroundTile(64, 64);
         groundTile.setWrap(Texture.TextureWrap.Repeat, Texture.TextureWrap.Repeat);
 
@@ -76,7 +86,7 @@ public class Assets {
         buildZombieAnim();
         sliceHearts();
 
-        buildHeroFrames();
+        buildHeroSpriteSets();
     }
 
     private Texture loadTexture(String name) {
@@ -105,12 +115,12 @@ public class Assets {
     }
 
     private void sliceHearts() {
-        // ton image : 5 colonnes x 3 lignes
+        
         int COLS=5, ROWS=3;
         int hw = hearts.getWidth()/COLS;
         int hh = hearts.getHeight()/ROWS;
-        heartFull  = new TextureRegion(hearts, 0*hw, 0*hh, hw, hh); // plein (première cellule)
-        heartEmpty = new TextureRegion(hearts, 2*hw, 1*hh, hw, hh); // vide (deuxième ligne, troisième col)
+        heartFull  = new TextureRegion(hearts, 0*hw, 0*hh, hw, hh); 
+        heartEmpty = new TextureRegion(hearts, 2*hw, 1*hh, hw, hh); 
     }
 
     private Animation<TextureRegion> makeAnimRow(Texture sheet, int ROWS, int COLS, int row, int c0, int c1, float fps, Animation.PlayMode mode){
@@ -136,39 +146,99 @@ public class Assets {
         Texture t=new Texture(pm); pm.dispose(); return t;
     }
 
-    /**
-     * Met chaque image simple dans une liste, pour faire une "animation" frame par frame.
-     * Si un jour tu ajoutes plus d'images, tu peux juste les ajouter dans ces listes.
-     */
-    private void buildHeroFrames() {
-        addFrame(hugoGroundL, hugoSwordFL);
-        addFrame(hugoGroundR, hugoSwordFR);
-        addFrame(hugoJumpL, hugoJumpFL);
-        addFrame(hugoJumpR, hugoJumpFR);
+    private void buildHeroSpriteSets() {
+        hugoSprites = buildHeroSet(
+            hugoSwordFL, hugoSwordFR,
+            hugoSwordFL, hugoSwordFR,
+            hugoJumpFL, hugoJumpFR,
+            hugoSwordFL, hugoSwordFR
+        );
 
-        addFrame(alexisGroundL, alexisSwordFL);
-        addFrame(alexisGroundR, alexisSwordFR);
-        addFrame(alexisJumpL, alexisJumpFL);
-        addFrame(alexisJumpR, alexisJumpFR);
+        alexisSprites = buildHeroSet(
+            alexisSwordFL, alexisSwordFR,
+            alexisSwordFL, alexisSwordFR,
+            alexisJumpFL, alexisJumpFR,
+            alexisSwordFL, alexisSwordFR
+        );
     }
 
-    private void addFrame(Array<TextureRegion> list, Texture tex) {
-        if (tex == null) return;
-        list.add(new TextureRegion(tex));
+    private HeroSpriteSet buildHeroSet(Texture idleL, Texture idleR,
+                                       Texture runL, Texture runR,
+                                       Texture jumpL, Texture jumpR,
+                                       Texture shootL, Texture shootR) {
+        HeroSpriteSet.DirectionalAnimation idle = buildDirectional(idleL, idleR, 4f, Animation.PlayMode.LOOP);
+        HeroSpriteSet.DirectionalAnimation run = buildDirectional(runL, runR, 8f, Animation.PlayMode.LOOP);
+        HeroSpriteSet.DirectionalAnimation jump = buildDirectional(jumpL, jumpR, 6f, Animation.PlayMode.LOOP);
+        HeroSpriteSet.DirectionalAnimation shoot = buildDirectional(shootL, shootR, 10f, Animation.PlayMode.NORMAL);
+        return new HeroSpriteSet(idle, run, jump, shoot);
+    }
+
+    private HeroSpriteSet.DirectionalAnimation buildDirectional(Texture leftTexture, Texture rightTexture, float fps, Animation.PlayMode playMode) {
+        return new HeroSpriteSet.DirectionalAnimation(
+            buildAnimation(leftTexture, fps, playMode),
+            buildAnimation(rightTexture, fps, playMode)
+        );
+    }
+
+    private Animation<TextureRegion> buildAnimation(Texture texture, float fps, Animation.PlayMode playMode) {
+        if (texture == null) return null;
+        SheetGrid grid = configFor(texture.getWidth(), texture.getHeight());
+        SpriteSheet sheet = new SpriteSheet(texture, grid.columns, grid.rows);
+        if (grid.useColumnStrip) {
+            return sheet.animationFromColumn(grid.rowIndex, fps, playMode);
+        }
+        return sheet.animationFromRow(grid.rowIndex, fps, playMode);
+    }
+
+    private SheetGrid configFor(int width, int height) {
+        if (width == 408 && height == 612) {
+            return new SheetGrid(6, 1, 0);
+        }
+        if (width == 500 && height == 500) {
+            return new SheetGrid(1, 5, 0, true);
+        }
+        return new SheetGrid(1, 1, 0);
+    }
+
+    private static class SheetGrid {
+        final int columns;
+        final int rows;
+        final int rowIndex;
+        final boolean useColumnStrip;
+
+        SheetGrid(int columns, int rows, int rowIndex) {
+            this(columns, rows, rowIndex, false);
+        }
+
+        SheetGrid(int columns, int rows, int rowIndex, boolean useColumnStrip) {
+            this.columns = Math.max(1, columns);
+            this.rows = Math.max(1, rows);
+            this.rowIndex = Math.max(0, rowIndex);
+            this.useColumnStrip = useColumnStrip;
+        }
+    }
+
+    public HeroSpriteSet getHeroSpriteSet(String heroName) {
+        if ("Alexis".equalsIgnoreCase(heroName)) {
+            return alexisSprites != null ? alexisSprites : hugoSprites;
+        }
+        return hugoSprites != null ? hugoSprites : alexisSprites;
     }
 
     public void dispose() {
         for (Texture t : new Texture[]{
             bg, groundTile, soldierSheet, zombieSheet, hearts,
             hugoSwordFL, hugoSwordFR, hugoJumpFL, hugoJumpFR,
-            alexisSwordFL, alexisSwordFR, alexisJumpFL, alexisJumpFR
+            hugoMitrailletteFL, hugoMitrailletteFR, hugoPistoletFL, hugoPistoletFR,
+            alexisSwordFL, alexisSwordFR, alexisJumpFL, alexisJumpFR,
+            alexisMitrailletteFL, alexisMitrailletteFR, alexisPistoletFL, alexisPistoletFR
         })
             if (t != null) t.dispose();
     }
 
-    // util pour longueur du monde en fonction du bg
+    
     public float computeWorldWidth(float viewportH){
         float scale = viewportH / bg.getHeight();
-        return bg.getWidth()*scale*3f;
+        return bg.getWidth()*scale;
     }
 }

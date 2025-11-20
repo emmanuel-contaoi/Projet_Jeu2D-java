@@ -2,47 +2,45 @@ package com.monzombie.game;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
-import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.utils.Array;
+import com.monzombie.game.Zombie;
+import com.monzombie.game.assets.HeroSpriteSet;
+import com.monzombie.game.assets.HeroSpriteSet.Action;
 import com.monzombie.game.util.Constants;
 
 public class Player {
 
-    // Position et taille
+    
     public float x, y;
     public float w, h;
 
-    // Vitesse
+    
     public float vx, vy;
     public boolean onGround = true;
 
-    // Stats
+    
     public int health = Constants.PLAYER_HP_MAX;
     public int score = 0;
 
-    // Orientation
+    
     private boolean facingLeft = false;
 
-    // listes de frames simples
-    private final Array<TextureRegion> groundLeftFrames;
-    private final Array<TextureRegion> groundRightFrames;
-    private final Array<TextureRegion> jumpLeftFrames;
-    private final Array<TextureRegion> jumpRightFrames;
-
-    private float animTime = 0f;
-
-    private final Texture onePx;
+    private final Rectangle bounds = new Rectangle();
+    private final Rectangle swordBounds = new Rectangle();
+    private final HeroSpriteSet sprites;
+    private static final float SHOOT_ANIM_TIME = 0.25f;
+    private static final int SWORD_DAMAGE = 100;
+    private float shootAnimTimer = 0f;
+    private float shootStateTime = 0f;
+    private Action currentAction = Action.IDLE;
+    private float actionTimer = 0f;
 
     public Player(float startX,
                   float groundY,
-                  Array<TextureRegion> groundLeftFrames,
-                  Array<TextureRegion> groundRightFrames,
-                  Array<TextureRegion> jumpLeftFrames,
-                  Array<TextureRegion> jumpRightFrames,
-                  Texture onePx) {
+                  HeroSpriteSet sprites) {
 
         this.x = startX;
         this.y = groundY;
@@ -50,29 +48,28 @@ public class Player {
         this.w = Constants.PLAYER_W;
         this.h = Constants.PLAYER_H;
 
-        this.groundLeftFrames = groundLeftFrames;
-        this.groundRightFrames = groundRightFrames;
-        this.jumpLeftFrames = jumpLeftFrames;
-        this.jumpRightFrames = jumpRightFrames;
-
-        this.onePx = onePx;
+        this.sprites = sprites;
     }
 
-    // ------------------------------------------------------
-    // Entrées clavier / souris
-    // ------------------------------------------------------
-    public void updateInput(float dt, Array<Bullet> outBullets) {
+    
+    
+    
+    public void updateInput(float dt, Array<Zombie> zombies) {
         boolean moveLeft = isLeftPressed();
         boolean moveRight = isRightPressed();
         boolean running = isRunPressed();
 
         updateHorizontalSpeed(dt, moveLeft, moveRight, running);
         handleJump();
-        handleShoot(outBullets);
+        handleSwordAttack(zombies);
+        updateShootAnimation(dt);
+        updateActionState(dt);
     }
 
     private boolean isLeftPressed() {
-        return Gdx.input.isKeyPressed(Input.Keys.A) || Gdx.input.isKeyPressed(Input.Keys.LEFT);
+        return Gdx.input.isKeyPressed(Input.Keys.A)
+            || Gdx.input.isKeyPressed(Input.Keys.Q)
+            || Gdx.input.isKeyPressed(Input.Keys.LEFT);
     }
 
     private boolean isRightPressed() {
@@ -113,47 +110,118 @@ public class Player {
         onGround = false;
     }
 
-    private void handleShoot(Array<Bullet> outBullets) {
-        boolean fire = Gdx.input.isButtonJustPressed(Input.Buttons.LEFT) ||
-            Gdx.input.isButtonJustPressed(Input.Buttons.RIGHT);
-        if (!fire) return;
+    private void handleSwordAttack(Array<Zombie> zombies) {
+        boolean swing = Gdx.input.isKeyJustPressed(Input.Keys.O);
+        if (!swing) return;
 
-        float dir = facingLeft ? -1f : 1f;
-        float startX = facingLeft ? x : x + w;
-        float startY = y + h * 0.65f;
+        shootAnimTimer = SHOOT_ANIM_TIME;
+        shootStateTime = 0f;
+        currentAction = Action.SHOOT;
+        actionTimer = 0f;
 
-        outBullets.add(new Bullet(
-            startX,
-            startY,
-            dir * Constants.BULLET_SPEED,
-            0,
-            Constants.BULLET_LIFE,
-            onePx
-        ));
+        if (zombies == null) return;
+
+        Rectangle swordHit = swordHitBox();
+        for (int i = 0; i < zombies.size; i++) {
+            Zombie z = zombies.get(i);
+            if (z.state != Zombie.ALIVE) continue;
+            if (!swordHit.overlaps(z.getBounds())) continue;
+            z.hp -= SWORD_DAMAGE;
+            if (z.hp <= 0) {
+                z.startDeath();
+                score += 1;
+            }
+        }
     }
 
-    // ------------------------------------------------------
-    // Physique simple
-    // ------------------------------------------------------
-    public void physics(float dt, float worldW, float ground) {
-        vy += Constants.GRAVITY * dt;
-        x += vx * dt;
-        y += vy * dt;
-        animTime += dt;
+    private Rectangle swordHitBox() {
+        float range = w * 0.9f;
+        float height = h * 0.6f;
+        float offsetX = facingLeft ? -range : w;
+        float offsetY = h * 0.2f;
+        swordBounds.set(x + offsetX, y + offsetY, range, height);
+        return swordBounds;
+    }
 
-        if (y <= ground) {
-            y = ground;
-            vy = 0;
-            onGround = true;
+    private void updateShootAnimation(float dt) {
+        if (shootAnimTimer <= 0f) return;
+        shootAnimTimer -= dt;
+        shootStateTime += dt;
+        if (shootAnimTimer < 0f) {
+            shootAnimTimer = 0f;
+            shootStateTime = 0f;
         }
+    }
 
+    private void updateActionState(float dt) {
+        Action desired = determineAction();
+        if (desired != currentAction) {
+            currentAction = desired;
+            actionTimer = 0f;
+        } else {
+            actionTimer += dt;
+        }
+    }
+
+    private Action determineAction() {
+        if (shootAnimTimer > 0f) return Action.SHOOT;
+        if (!onGround) return Action.JUMP;
+        if (Math.abs(vx) > 20f) return Action.RUN;
+        return Action.IDLE;
+    }
+
+    
+    
+    
+    public void physics(float dt, float worldW, Array<Rectangle> solids) {
+        
+        vy += Constants.GRAVITY * dt;
+
+        
+        x += vx * dt;
+        resolveHorizontal(solids, worldW);
+
+        
+        y += vy * dt;
+        resolveVertical(solids);
+    }
+
+    private void resolveHorizontal(Array<Rectangle> solids, float worldW) {
+        Rectangle hitBox = getBounds();
+        for (Rectangle solid : solids) {
+            if (!hitBox.overlaps(solid)) continue;
+            if (vx > 0) {
+                x = solid.x - w;
+            } else if (vx < 0) {
+                x = solid.x + solid.width;
+            }
+            vx = 0;
+            hitBox = getBounds();
+        }
         if (x < 0) x = 0;
         if (x > worldW - w) x = worldW - w;
     }
 
-    // ------------------------------------------------------
-    // Affichage
-    // ------------------------------------------------------
+    private void resolveVertical(Array<Rectangle> solids) {
+        onGround = false;
+        Rectangle hitBox = getBounds();
+        for (Rectangle solid : solids) {
+            if (!hitBox.overlaps(solid)) continue;
+            if (vy > 0) {
+                y = solid.y - h;
+                vy = 0;
+            } else {
+                y = solid.y + solid.height;
+                vy = 0;
+                onGround = true;
+            }
+            hitBox = getBounds();
+        }
+    }
+
+    
+    
+    
     public void render(SpriteBatch b) {
         TextureRegion frame = selectFrame();
         if (frame != null) {
@@ -162,28 +230,17 @@ public class Player {
     }
 
     private TextureRegion selectFrame() {
-        if (!onGround) {
-            if (facingLeft) return pickFrame(jumpLeftFrames);
-            return pickFrame(jumpRightFrames);
-        }
-
-        if (facingLeft) return pickFrame(groundLeftFrames);
-        return pickFrame(groundRightFrames);
+        if (sprites == null) return null;
+        float stateTime = currentAction == Action.SHOOT ? shootStateTime : actionTimer;
+        return sprites.frame(currentAction, facingLeft, stateTime);
     }
 
-    // line of code
-
-    private TextureRegion pickFrame(Array<TextureRegion> frames) {
-        if (frames == null || frames.size == 0) return null;
-        int fps = 6; // simple animation lente
-        int index = (int)(animTime * fps) % frames.size;
-        return frames.get(index);
-    }
-
-    // ------------------------------------------------------
-    // Collisions utilitaire
-    // ------------------------------------------------------
+    
+    
+    
     public Rectangle getBounds() {
-        return new Rectangle(x, y, w, h);
+        float marginX = w * 0.2f;
+        bounds.set(x + marginX, y, w - 2 * marginX, h);
+        return bounds;
     }
 }

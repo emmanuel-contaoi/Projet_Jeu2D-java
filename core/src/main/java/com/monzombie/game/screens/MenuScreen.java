@@ -24,12 +24,12 @@ public class MenuScreen implements Screen {
 
     private final Viewport viewport;
 
-    // ==== Arrière-plan animé ====
-    private Texture bg;              // ton image de fond
-    private float bgOffsetX = 0;     // décalage actuel
-    private float bgSpeed = 20f;     // vitesse du défilement (pixels/seconde)
+    
+    private Texture bg;              
+    private float bgOffsetX = 0;     
+    private float bgSpeed = 20f;     
 
-    // ==== Boutons ====
+    
     private Texture white1x1;
     private BitmapFont font;
     private final GlyphLayout layout = new GlyphLayout();
@@ -55,12 +55,12 @@ public class MenuScreen implements Screen {
         font.getData().setScale(2.0f);
         white1x1 = makeWhite();
 
-        // charge ton fond (image large)
+        
         if (Gdx.files.internal("menu_background.png").exists()) {
             bg = new Texture(Gdx.files.internal("menu_background.png"));
         }
 
-        // place les boutons
+        
         float x = (Constants.VW - BTN_W) / 2f;
         float top = Constants.VH / 2f + BTN_H + BTN_GAP;
         rStart.set(x, top, BTN_W, BTN_H);
@@ -87,7 +87,7 @@ public class MenuScreen implements Screen {
         }
         if (justUp) {
             if (pressingStart  && rStart.contains(mx,my))  { game.setScreen(new LevelSelectScreen(game)); }
-            if (pressingOption && rOption.contains(mx,my)) { /* TODO */ }
+            if (pressingOption && rOption.contains(mx,my)) { game.setScreen(new LeaderboardScreen(game)); }
             if (pressingExit   && rExit.contains(mx,my))   { Gdx.app.exit(); }
             pressingStart = pressingOption = pressingExit = false;
         }
@@ -100,20 +100,20 @@ public class MenuScreen implements Screen {
         batch.setProjectionMatrix(viewport.getCamera().combined);
         batch.begin();
 
-        drawAnimatedBackground(); // 👈 on dessine le fond qui bouge
+        drawAnimatedBackground(); 
         drawButton(rStart,  "START",  rStart.contains(mx,my),  pressingStart);
-        drawButton(rOption, "OPTIONS",rOption.contains(mx,my), pressingOption);
+        drawButton(rOption, "SCORES", rOption.contains(mx,my), pressingOption);
         drawButton(rExit,   "EXIT",   rExit.contains(mx,my),   pressingExit);
 
         batch.end();
     }
 
-    // === Animation du fond ===
+    
     private void updateBackground(float delta) {
         if (bg == null) return;
         bgOffsetX += bgSpeed * delta;
         if (bgOffsetX > bg.getWidth()) {
-            bgOffsetX -= bg.getWidth(); // boucle infinie
+            bgOffsetX -= bg.getWidth(); 
         }
     }
 
@@ -123,14 +123,14 @@ public class MenuScreen implements Screen {
         float tileW = bg.getWidth() * scale;
         float x = -bgOffsetX * scale;
 
-        // on répète l’image pour remplir tout l’écran
+        
         while (x < Constants.VW) {
             batch.draw(bg, x, 0, tileW, Constants.VH);
             x += tileW;
         }
     }
 
-    // === dessin des boutons ===
+    
     private void drawButton(Rectangle r, String text, boolean hover, boolean pressed) {
         Color base = new Color(0.16f,0.18f,0.22f,0.95f);
         Color hoverCol = new Color(0.24f,0.49f,0.86f,0.95f);
