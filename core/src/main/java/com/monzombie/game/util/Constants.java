@@ -15,7 +15,7 @@ public final class Constants {
 
     
     public static final int PLAYER_HP_MAX = 8;
-    public static final boolean GOD_MODE = true;
+    public static final boolean GOD_MODE = false;
     public static final float PLAYER_W = 150f;
     public static final float PLAYER_H = 150f;
     public static final float PLAYER_ACCEL = 1400f;
