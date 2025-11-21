@@ -122,17 +122,16 @@ public class LevelSelectScreen implements Screen {
 
         if (justUp) {
             if (pressingL1 && rLvl1.contains(mx,my)) {
-                
-                game.setScreen(new CharacterSelectScreen(game, 1));
+                startLevel(1);
                 return;
             }
             if (pressingL2 && lvl2Unlocked && rLvl2.contains(mx,my)) {
-                
-                System.out.println("Niveau 2 pas encore implémenté");
+                startLevel(2);
+                return;
             }
             if (pressingL3 && lvl3Unlocked && rLvl3.contains(mx,my)) {
-                
-                System.out.println("Niveau 3 pas encore implémenté");
+                startLevel(3);
+                return;
             }
             if (pressingBack && rBack.contains(mx,my)) {
                 game.setScreen(new MenuScreen(game));
@@ -235,6 +234,15 @@ public class LevelSelectScreen implements Screen {
         font.draw(batch, layout,
             x + (w - layout.width)/2f,
             y + (h + layout.height)/2f);
+    }
+
+    private void startLevel(int level) {
+        boolean hasName = game.playerName != null && !game.playerName.trim().isEmpty();
+        if (!hasName) {
+            game.setScreen(new NameEntryScreen(game, level));
+            return;
+        }
+        game.setScreen(new CharacterSelectScreen(game, level));
     }
 
     

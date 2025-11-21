@@ -64,6 +64,13 @@ public class LevelScreen implements Screen {
     private Array<Rectangle> zombieZones;
     private boolean debugColliders = true;
     private boolean initialized = false;
+    private boolean transitioningToNextLevel = false;
+    private float transitionTimer = 0f;
+    private int nextLevelNumber = -1;
+    private static final float LEVEL_TRANSITION_DURATION = 2f;
+    private boolean showFinalMessage = false;
+    private float finalMessageTimer = 0f;
+    private static final float FINAL_MESSAGE_DURATION = 4f;
 
     /**
      * Creates a level screen for the requested stage id.
@@ -113,7 +120,8 @@ public class LevelScreen implements Screen {
             startX,
             groundY,
             heroSprites,
-            game.settings
+            game.settings,
+            chosenHero
         );
 
         spawner = new Spawner();
@@ -140,6 +148,8 @@ public class LevelScreen implements Screen {
 
         handleInput(dt);
         updateGame(dt);
+        updateTransition(dt);
+        updateFinalMessage(dt);
         updateCamera();
         drawFrame();
     }
@@ -212,7 +222,7 @@ public class LevelScreen implements Screen {
         CollisionSystem.zombiesVsPlayer(zombies, player, dt);
         checkHazards();
         if (Constants.GOD_MODE) {
-            player.health = Constants.PLAYER_HP_MAX;
+            player.remplirVie();
         }
         checkPlayerDeath();
         checkLevelCompletion();
@@ -235,39 +245,43 @@ public class LevelScreen implements Screen {
     }
 
     private void checkPlayerDeath() {
-        if (player.health > 0 || gameOver) return;
+        if (player.getVie() > 0 || gameOver) return;
         gameOver = true;
         game.setScreen(new GameOverScreen(game, levelNumber));
     }
 
     private void checkHazards() {
-        if (gameOver || player == null || player.health <= 0) return;
-        if (player.y < -200f) {
-            player.health = 0;
-            return;
-        }
-        if (hazardZones == null) return;
+        if (gameOver || player == null || player.estMort()) return;
         Rectangle hitBox = player.getBounds();
-        for (Rectangle hazard : hazardZones) {
-            if (!hitBox.overlaps(hazard)) continue;
-            player.health = 0;
-            return;
+        if (hazardZones != null) {
+            for (Rectangle hazard : hazardZones) {
+                if (!hitBox.overlaps(hazard)) continue;
+                player.tuerDirect();
+                return;
+            }
+        }
+        if (player.y < -600f) {
+            player.tuerDirect();
         }
     }
 
     private void checkLevelCompletion() {
         if (gameOver || levelFinished || player == null) return;
-        if (player.score < levelGoalScore) return;
+        if (requiresScoreToFinish() && player.score < levelGoalScore) return;
         if (!isOnFinishDoor()) return;
 
         levelFinished = true;
         gameOver = true;
         game.markLevelFinished(levelNumber);
         if (game.scoreManager != null) {
-            game.scoreManager.addScore(levelNumber, levelTimer);
+            game.scoreManager.addScore(levelNumber, levelTimer, game.playerName);
         }
         System.out.println("Niveau " + levelNumber + " terminé !");
-        game.setScreen(new LevelSelectScreen(game));
+        if (levelNumber < 3) {
+            startLevelTransition(levelNumber + 1);
+        } else {
+            startFinalMessage();
+        }
     }
 
     private boolean isOnFinishDoor() {
@@ -275,6 +289,39 @@ public class LevelScreen implements Screen {
         float playerFront = player.x + player.w;
         float doorStart = Math.max(0f, worldWidth - DOOR_ZONE_WIDTH);
         return playerFront >= doorStart;
+    }
+
+    private boolean requiresScoreToFinish() {
+        return levelNumber > 1;
+    }
+
+    private void startLevelTransition(int targetLevel) {
+        transitioningToNextLevel = true;
+        transitionTimer = 0f;
+        nextLevelNumber = targetLevel;
+    }
+
+    private void updateTransition(float dt) {
+        if (!transitioningToNextLevel) return;
+        transitionTimer += dt;
+        if (transitionTimer >= LEVEL_TRANSITION_DURATION && nextLevelNumber > 0) {
+            transitioningToNextLevel = false;
+            game.setScreen(new LevelScreen(game, nextLevelNumber));
+        }
+    }
+
+    private void startFinalMessage() {
+        showFinalMessage = true;
+        finalMessageTimer = 0f;
+    }
+
+    private void updateFinalMessage(float dt) {
+        if (!showFinalMessage) return;
+        finalMessageTimer += dt;
+        if (finalMessageTimer >= FINAL_MESSAGE_DURATION) {
+            showFinalMessage = false;
+            game.setScreen(new LevelSelectScreen(game));
+        }
     }
 
     private void updateCamera() {
@@ -306,10 +353,18 @@ public class LevelScreen implements Screen {
 
         drawTimerDisplay();
         hud.render(batch, cameraX, Constants.VW, Constants.VH,
-            player.health, Constants.PLAYER_HP_MAX, levelTimer, player.score);
+            player.getVie(), Constants.PLAYER_HP_MAX, levelTimer, player.score);
         if (game.settings != null) {
             float left = cameraX - Constants.VW / 2f;
             game.settings.drawBrightnessOverlay(batch, onePx, left, Constants.VW, Constants.VH);
+        }
+        if (transitioningToNextLevel) {
+            float alpha = Math.min(1f, transitionTimer / LEVEL_TRANSITION_DURATION);
+            drawOverlay(alpha);
+        }
+        if (showFinalMessage) {
+            drawOverlay(0.95f);
+            drawFinalMessage();
         }
 
         batch.end();
@@ -323,6 +378,34 @@ public class LevelScreen implements Screen {
         float y = Constants.VH - 40f;
         timerFont.setColor(Color.WHITE);
         timerFont.draw(batch, timerLayout, x, y);
+    }
+
+    private void drawOverlay(float alpha) {
+        if (onePx == null) return;
+        batch.setColor(0f, 0f, 0f, Math.min(1f, Math.max(0f, alpha)));
+        batch.draw(onePx, cameraX - Constants.VW / 2f, 0f, Constants.VW, Constants.VH);
+        batch.setColor(Color.WHITE);
+    }
+
+    private void drawFinalMessage() {
+        if (timerFont == null) return;
+        String playerName = (game.playerName != null && !game.playerName.trim().isEmpty())
+            ? game.playerName.trim()
+            : "Soldat";
+        String line1 = playerName + ", mission accomplie.";
+        String line2 = "Mauvaise nouvelle: aucun survivant.";
+        String line3 = "Tu es maintenant... le dernier.";
+
+        float startY = Constants.VH / 2f + 40f;
+        timerFont.setColor(Color.WHITE);
+        timerLayout.setText(timerFont, line1);
+        timerFont.draw(batch, line1, cameraX - timerLayout.width / 2f, startY);
+
+        timerLayout.setText(timerFont, line2);
+        timerFont.draw(batch, line2, cameraX - timerLayout.width / 2f, startY - 50f);
+
+        timerLayout.setText(timerFont, line3);
+        timerFont.draw(batch, line3, cameraX - timerLayout.width / 2f, startY - 100f);
     }
 
     private void clearScreen() {

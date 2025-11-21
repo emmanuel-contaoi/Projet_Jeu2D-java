@@ -6,19 +6,13 @@ import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.utils.Array;
+import com.monzombie.game.entity.EtatVie;
+import com.monzombie.game.entity.LivingEntity;
 import com.monzombie.game.util.Constants;
 
-/**
- * Basic zombie enemy handling patrol logic and rag-doll inspired deaths.
- */
-public class Zombie {
-    public static final int ALIVE = 0;
-    public static final int DYING = 1;
+public class Zombie extends LivingEntity {
 
-    public int state = ALIVE;
-
-    public float x, y, w, h, speed;
-    public int hp;
+    public float speed;
 
     public float hitCooldown = 0f;
     public boolean flipLeft  = false;
@@ -32,7 +26,6 @@ public class Zombie {
     public float vx = 0f;
 
     private final Animation<TextureRegion> animWalk;
-    private final Rectangle bounds = new Rectangle();
     private Rectangle patrolZone;
     private int zoneIndex = -1;
     private float patrolDir;
@@ -46,14 +39,11 @@ public class Zombie {
      * @param animWalk animation played while the zombie is alive
      */
     public Zombie(float x, float y, float speed, Animation<TextureRegion> animWalk) {
+        super(Constants.ZOMBIE_W, Constants.ZOMBIE_H, Constants.ZOMBIE_HP);
         this.x = x;
         this.y = y;
 
-        this.w = Constants.ZOMBIE_W;
-        this.h = Constants.ZOMBIE_H;
-
         this.speed = speed;
-        this.hp = Constants.ZOMBIE_HP;
 
         this.animWalk = animWalk;
         patrolDir = MathUtils.randomBoolean() ? 1f : -1f;
@@ -119,13 +109,20 @@ public class Zombie {
      * @return true when the zombie finished its death animation
      */
     public boolean update(float dt, float targetX, Array<Rectangle> solids) {
-        if (state == ALIVE) {
+        if (etatVie == EtatVie.VIVANT) {
             updateAlive(dt, targetX);
             resolveSolids(solids);
             return false; 
         }
-        
-        return updateDying(dt, Constants.GROUND_H);
+        if (etatVie == EtatVie.AGONIE) {
+            boolean done = updateDying(dt, Constants.GROUND_H);
+            if (done) {
+                changerEtat(EtatVie.MORT);
+                return true;
+            }
+            return false;
+        }
+        return true;
     }
 
     
@@ -133,7 +130,7 @@ public class Zombie {
      * Triggers the rag-doll like falling animation and resets timers.
      */
     public void startDeath() {
-        state = DYING;
+        changerEtat(EtatVie.AGONIE);
         deathT = 0f;
         vy = MathUtils.random(600f, 900f);
         vr = MathUtils.random(-420f, 420f);
@@ -223,6 +220,7 @@ public class Zombie {
      *
      * @return cached rectangle representing the zombie body
      */
+    @Override
     public Rectangle getBounds() {
         float marginX = w * 0.2f;
         bounds.set(x + marginX, y, w - marginX * 2f, h);
@@ -248,5 +246,11 @@ public class Zombie {
      */
     public int getZoneIndex() {
         return zoneIndex;
+    }
+
+    @Override
+    protected void mourir() {
+        if (etatVie == EtatVie.AGONIE || etatVie == EtatVie.MORT) return;
+        startDeath();
     }
 }

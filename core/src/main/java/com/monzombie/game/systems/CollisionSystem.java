@@ -5,6 +5,7 @@ import com.badlogic.gdx.utils.Array;
 import com.monzombie.game.Bullet;
 import com.monzombie.game.Player;
 import com.monzombie.game.Zombie;
+import com.monzombie.game.entity.EtatVie;
 import com.monzombie.game.util.Constants;
 
 /**
@@ -30,7 +31,7 @@ public class CollisionSystem {
         int kills = 0;
         for (int zi = zombies.size - 1; zi >= 0; zi--) {
             Zombie z = zombies.get(zi);
-            if (z.state != Zombie.ALIVE) continue;
+            if (!z.estVivant()) continue;
 
             Rectangle zBox = z.getBounds();
             for (int bi = bullets.size - 1; bi >= 0; bi--) {
@@ -38,10 +39,10 @@ public class CollisionSystem {
                 boolean hit = overlap(b.x, b.y, 10, 3, zBox.x, zBox.y, zBox.width, zBox.height);
                 if (!hit) continue;
 
-                z.hp -= 50;
+                EtatVie prevState = z.getEtatVie();
+                z.subirDegats(50);
                 bullets.removeIndex(bi);
-                if (z.hp <= 0) {
-                    z.startDeath();
+                if (prevState == EtatVie.VIVANT && !z.estVivant()) {
                     kills++;
                 }
                 break; 
@@ -60,7 +61,7 @@ public class CollisionSystem {
     public static void zombiesVsPlayer(Array<Zombie> zombies, Player player, float dt){
         Rectangle playerBox = player.getBounds();
         for (Zombie z : zombies) {
-            if (z.state != Zombie.ALIVE) continue;
+            if (!z.estVivant()) continue;
 
             Rectangle zBox = z.getBounds();
             boolean touchesPlayer = overlap(
@@ -71,7 +72,7 @@ public class CollisionSystem {
             if (touchesPlayer) {
                 if (z.hitCooldown <= 0f) {
                     z.hitCooldown = 0.8f;
-                    player.health = Math.max(0, player.health - Constants.ZOMBIE_DAMAGE);
+                    player.subirDegats(Constants.ZOMBIE_DAMAGE);
                 }
                 separatePlayerAndZombie(z, playerBox, zBox);
             }

@@ -18,6 +18,7 @@ import com.badlogic.gdx.utils.viewport.FitViewport;
 import com.badlogic.gdx.utils.viewport.Viewport;
 import TestForMain.MainGame;
 import com.monzombie.game.util.Constants;
+import com.badlogic.gdx.files.FileHandle;
 
 /**
  * Screen that lets the player pick between the available heroes before a level starts.
@@ -57,6 +58,25 @@ public class CharacterSelectScreen implements Screen {
     private Texture texChar1, texChar2;
     private Animation<TextureRegion> animChar1, animChar2;
     private float animTime = 0f;
+    private static final class PreviewOption {
+        final String path;
+        final int cols;
+        final int rows;
+        PreviewOption(String path, int cols, int rows) {
+            this.path = path;
+            this.cols = cols;
+            this.rows = rows;
+        }
+    }
+
+    private static final class PreviewData {
+        final Texture texture;
+        final Animation<TextureRegion> animation;
+        PreviewData(Texture texture, Animation<TextureRegion> animation) {
+            this.texture = texture;
+            this.animation = animation;
+        }
+    }
 
     /**
      * Creates the selection screen for a specific level.
@@ -86,11 +106,21 @@ public class CharacterSelectScreen implements Screen {
         bg = new Texture("menu_background.png");
 
         
-        texChar1 = new Texture("sprit2.png");     
-        animChar1 = buildSimpleAnimation(texChar1, 4, 5, 10f);
+        PreviewData alexisPreview = loadPreviewAnimation(
+            new PreviewOption("sprit2.png", 4, 5),
+            new PreviewOption("Sprite /player/alexis/alexiswalkwithwoodsword.png", 5, 1),
+            new PreviewOption("Sprite /player/alexis/alexisjumpattacksword.png", 6, 1)
+        );
+        texChar1 = alexisPreview.texture;
+        animChar1 = alexisPreview.animation;
 
-        texChar2 = new Texture("spirit1.png");    
-        animChar2 = buildSimpleAnimation(texChar2, 4, 4, 10f);
+        PreviewData hugoPreview = loadPreviewAnimation(
+            new PreviewOption("spirit1.png", 4, 4),
+            new PreviewOption("Sprite /player/hugo/hugojumpattacksword.png", 6, 1),
+            new PreviewOption("Sprite /player/hugo/hugojumpgatling.png", 6, 1)
+        );
+        texChar2 = hugoPreview.texture;
+        animChar2 = hugoPreview.animation;
 
         
         float totalW = CARD_W * 2 + CARD_GAP;
@@ -221,6 +251,27 @@ public class CharacterSelectScreen implements Screen {
     }
 
     private Texture getWhite() { return white1x1; }
+
+    private PreviewData loadPreviewAnimation(PreviewOption... options) {
+        if (options == null) throw new RuntimeException("Aucun sprite fourni");
+        for (PreviewOption option : options) {
+            if (option == null || option.path == null) continue;
+            Texture texture = tryLoadTexture(option.path);
+            if (texture == null) continue;
+            Animation<TextureRegion> animation = buildSimpleAnimation(texture, option.cols, option.rows, 10f);
+            return new PreviewData(texture, animation);
+        }
+        throw new RuntimeException("Sprites introuvables pour la selection heros");
+    }
+
+    private Texture tryLoadTexture(String path) {
+        if (path == null || path.isEmpty()) return null;
+        FileHandle fh = Gdx.files.internal(path);
+        if (!fh.exists()) return null;
+        Texture texture = new Texture(fh);
+        texture.setFilter(Texture.TextureFilter.Nearest, Texture.TextureFilter.Nearest);
+        return texture;
+    }
 
     /**
      * Keeps the UI centered when the window is resized.

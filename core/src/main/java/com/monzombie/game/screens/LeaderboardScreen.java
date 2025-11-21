@@ -24,6 +24,7 @@ import java.util.Locale;
 /**
  * Displays the local leaderboard and allows the player to return to the menu.
  */
+
 public class LeaderboardScreen implements Screen {
 
     private final MainGame game;
@@ -151,8 +152,9 @@ public class LeaderboardScreen implements Screen {
 
         for (int i = 0; i < scores.size; i++) {
             ScoreManager.ScoreEntry entry = scores.get(i);
-            String line = String.format(Locale.US, "%2d. Niveau %d - %s",
-                i + 1, entry.level, formatTime(entry.timeSeconds));
+            String playerName = entry.playerName != null ? entry.playerName : "Anonyme";
+            String line = String.format(Locale.US, "%2d. %s - Niveau %d - %s",
+                i + 1, playerName, entry.level, formatTime(entry.timeSeconds));
             layout.setText(font, line);
             font.draw(batch, line,
                 (Constants.VW - layout.width) / 2f,

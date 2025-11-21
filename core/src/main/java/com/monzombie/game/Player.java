@@ -6,35 +6,33 @@ import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.utils.Array;
-import com.monzombie.game.Zombie;
 import com.monzombie.game.assets.HeroSpriteSet;
 import com.monzombie.game.assets.HeroSpriteSet.Action;
+import com.monzombie.game.entity.EtatVie;
+import com.monzombie.game.entity.LivingEntity;
 import com.monzombie.game.util.Constants;
 import com.monzombie.game.util.SettingsManager;
+import java.util.Locale;
 
 /**
  * Handles keyboard-driven movement, attacks and rendering for the selected hero.
  */
-public class Player {
-
-    
-    public float x, y;
-    public float w, h;
+public class Player extends LivingEntity {
 
     
     public float vx, vy;
     public boolean onGround = true;
+    private int jumpsPerformed = 0;
+    private static final int MAX_JUMPS = 2;
 
-    
-    public int health = Constants.PLAYER_HP_MAX;
     public int score = 0;
 
     
     private boolean facingLeft = false;
 
-    private final Rectangle bounds = new Rectangle();
     private final Rectangle swordBounds = new Rectangle();
     private final HeroSpriteSet sprites;
+    private final String heroName;
     private final SettingsManager settings;
     private static final float SHOOT_ANIM_TIME = 0.25f;
     private static final int SWORD_DAMAGE = 100;
@@ -54,16 +52,16 @@ public class Player {
     public Player(float startX,
                   float groundY,
                   HeroSpriteSet sprites,
-                  SettingsManager settings) {
+                  SettingsManager settings,
+                  String heroName) {
 
+        super(Constants.PLAYER_W, Constants.PLAYER_H, Constants.PLAYER_HP_MAX);
         this.x = startX;
         this.y = groundY;
 
-        this.w = Constants.PLAYER_W;
-        this.h = Constants.PLAYER_H;
-
         this.sprites = sprites;
         this.settings = settings;
+        this.heroName = heroName;
     }
 
     
@@ -125,11 +123,13 @@ public class Player {
     }
 
     private void handleJump() {
-        if (!onGround) return;
+        int jumpsLeft = MAX_JUMPS - jumpsPerformed;
+        if (jumpsLeft <= 0) return;
         int key = settings != null ? settings.getJumpKey() : Input.Keys.SPACE;
         if (!Gdx.input.isKeyJustPressed(key)) return;
         vy = Constants.JUMP_IMPULSE;
         onGround = false;
+        jumpsPerformed++;
     }
 
     private void handleSwordAttack(Array<Zombie> zombies) {
@@ -147,11 +147,11 @@ public class Player {
         Rectangle swordHit = swordHitBox();
         for (int i = 0; i < zombies.size; i++) {
             Zombie z = zombies.get(i);
-            if (z.state != Zombie.ALIVE) continue;
+            if (!z.estVivant()) continue;
             if (!swordHit.overlaps(z.getBounds())) continue;
-            z.hp -= SWORD_DAMAGE;
-            if (z.hp <= 0) {
-                z.startDeath();
+            EtatVie prevState = z.getEtatVie();
+            z.subirDegats(SWORD_DAMAGE);
+            if (prevState == EtatVie.VIVANT && z.getEtatVie() != EtatVie.VIVANT) {
                 score += 1;
             }
         }
@@ -243,6 +243,9 @@ public class Player {
             } else {
                 y = solid.y + solid.height;
                 vy = 0;
+                if (!onGround) {
+                    jumpsPerformed = 0;
+                }
                 onGround = true;
             }
             hitBox = getBounds();
@@ -260,7 +263,34 @@ public class Player {
     public void render(SpriteBatch b) {
         TextureRegion frame = selectFrame();
         if (frame != null) {
-            b.draw(frame, x, y, w, h);
+            float drawW = w;
+            float drawH = h;
+            float drawX = x;
+            float drawY = y;
+
+            if (isHero("alexis")) {
+                float widthScale = 2f;
+                float heightScale = widthScale / 1.10f;
+                drawW = w * widthScale;
+                drawH = h * heightScale;
+                drawX = x + (w - drawW) / 2f;
+                drawY = y - (drawH - h) / 2f;
+                if (currentAction == Action.JUMP) {
+                    float jumpWidth = widthScale;
+                    float jumpHeight = widthScale * 1.10f;
+                    drawW = w * jumpWidth;
+                    drawH = h * jumpHeight;
+                    drawX = x + (w - drawW) / 2f;
+                    drawY = y - (drawH - h) / 2f;
+                }
+            } else if (isHero("hugo") && currentAction == Action.JUMP) {
+                float scale = 2f;
+                drawW = w * scale;
+                drawH = h * scale;
+                drawX = x + (w - drawW) / 2f + 40f;
+            }
+
+            b.draw(frame, drawX, drawY, drawW, drawH);
         }
     }
 
@@ -278,9 +308,20 @@ public class Player {
      *
      * @return rectangle reused for collision checks
      */
+    @Override
     public Rectangle getBounds() {
         float marginX = w * 0.2f;
         bounds.set(x + marginX, y, w - 2 * marginX, h);
         return bounds;
+    }
+
+    public int getHealth() {
+        return getVie();
+    }
+
+    private boolean isHero(String name) {
+        if (heroName == null || name == null) return false;
+        String base = heroName.toLowerCase(Locale.ROOT);
+        return base.contains(name.toLowerCase(Locale.ROOT));
     }
 }

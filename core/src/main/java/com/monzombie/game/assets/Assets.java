@@ -7,6 +7,7 @@ import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.Animation;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.utils.Array;
+import java.util.Locale;
 
 /**
  * Loads and owns every texture and animation used across the game.
@@ -35,8 +36,10 @@ public class Assets {
     public Texture alexisMitrailletteFR;
     public Texture alexisPistoletFL;
     public Texture alexisPistoletFR;
+    public Texture hugoJumpMinigun;
 
     public HeroSpriteSet hugoSprites;
+    public HeroSpriteSet hugoGunSprites;
     public HeroSpriteSet alexisSprites;
 
     
@@ -54,35 +57,26 @@ public class Assets {
      */
     public void load() {
         bg = loadTexture("bunker.jpg");
-        soldierSheet = loadTexture("sprite sheet 8-bit 2.png");
+        soldierSheet = loadTexture("sprite sheet 8-bit 2.png", "hero.png");
         zombieSheet  = loadTexture("zombie_sheet.png");
         hearts       = loadTexture("hearts.png");
-        hugoSwordFL  = loadTexture("HugoSwordFL.png");
-        hugoSwordFR  = loadTexture("HugoSwordFR.png");
-        hugoJumpFL   = loadTexture("HugoJumpingFL.png");
-        hugoJumpFR   = loadTexture("HugoJumpingFR.png");
-        hugoMitrailletteFL = loadTexture("HugoMitrailletteFL.png");
-        hugoMitrailletteFR = loadTexture("HugoMitrailletteFR.png");
-        hugoPistoletFL = loadTexture("HugoPistoletFL.png");
-        hugoPistoletFR = loadTexture("HugoPistoletFR.png");
-        alexisSwordFL = loadTexture("AlexisSwordFL.png");
-        alexisSwordFR = loadTexture("AlexisSwordFR.png");
-        alexisJumpFL  = loadTexture("AlexisJumpingFL.png");
-        alexisJumpFR  = loadTexture("AlexisJumpingFR.png");
-        alexisMitrailletteFL = loadTexture("AlexisMitrailletteFL.png");
-        alexisMitrailletteFR = loadTexture("AlexisMitrailletteFR.png");
-        alexisPistoletFL = loadTexture("AlexisPistoletFL.png");
-        alexisPistoletFR = loadTexture("AlexisPistoletFR.png");
-
-        
-        for (Texture t : new Texture[]{
-            bg, soldierSheet, zombieSheet, hearts,
-            hugoSwordFL, hugoSwordFR, hugoJumpFL, hugoJumpFR,
-            hugoMitrailletteFL, hugoMitrailletteFR, hugoPistoletFL, hugoPistoletFR,
-            alexisSwordFL, alexisSwordFR, alexisJumpFL, alexisJumpFR,
-            alexisMitrailletteFL, alexisMitrailletteFR, alexisPistoletFL, alexisPistoletFR
-        })
-            if (t != null) t.setFilter(Texture.TextureFilter.Nearest, Texture.TextureFilter.Nearest);
+        hugoSwordFL  = loadTextureOrNull("HugoSwordFL.png", "Sprite /player/hugo/hugomoveattackFL.png");
+        hugoSwordFR  = loadTextureOrNull("HugoSwordFR.png");
+        hugoJumpFL   = loadTextureOrNull("HugoJumpingFL.png", "Sprite /player/hugo/hugojumpattacksword.png");
+        hugoJumpFR   = loadTextureOrNull("HugoJumpingFR.png", "Sprite /player/hugo/hugojumpattacksword.png");
+        hugoMitrailletteFL = loadTextureOrNull("HugoMitrailletteFL.png", "Sprite /player/hugo/hugomoveattackgatling.png");
+        hugoMitrailletteFR = loadTextureOrNull("HugoMitrailletteFR.png", "Sprite /player/hugo/hugomoveattackminigun.png");
+        hugoPistoletFL = loadTextureOrNull("HugoPistoletFL.png", "Sprite /player/hugo/hugojumpattacksword.png");
+        hugoPistoletFR = loadTextureOrNull("HugoPistoletFR.png");
+        hugoJumpMinigun = loadTextureOrNull("Sprite /player/hugo/hugojumpminigun.png");
+        alexisSwordFL = loadTextureOrNull("AlexisSwordFL.png", "Sprite /player/alexis/alexiswalkwithwoodsword.png");
+        alexisSwordFR = loadTextureOrNull("AlexisSwordFR.png");
+        alexisJumpFL  = loadTextureOrNull("AlexisJumpingFL.png", "Sprite /player/alexis/alexisjumpminigun.png");
+        alexisJumpFR  = loadTextureOrNull("AlexisJumpingFR.png");
+        alexisMitrailletteFL = loadTextureOrNull("AlexisMitrailletteFL.png", "Sprite /player/alexis/alexiswalkminigun.png");
+        alexisMitrailletteFR = loadTextureOrNull("AlexisMitrailletteFR.png", "alexisGunwalk.png");
+        alexisPistoletFL = loadTextureOrNull("AlexisPistoletFL.png", "Sprite /player/alexis/alexisjumpgatling.png");
+        alexisPistoletFR = loadTextureOrNull("AlexisPistoletFR.png", "alexisGunwalk.png");
 
         
         groundTile = makeGroundTile(64, 64);
@@ -95,10 +89,36 @@ public class Assets {
         buildHeroSpriteSets();
     }
 
-    private Texture loadTexture(String name) {
-        FileHandle fh = Gdx.files.internal(name);
-        if (!fh.exists()) throw new RuntimeException("Asset introuvable: " + name + " (place-le dans core/assets/)");
-        return new Texture(fh);
+    private Texture loadTexture(String... names) {
+        Texture texture = loadTextureOrNull(names);
+        if (texture == null) {
+            throw new RuntimeException("Asset introuvable: " + joinNames(names) + " (place-le dans core/assets/)");
+        }
+        return texture;
+    }
+
+    private Texture loadTextureOrNull(String... names) {
+        if (names == null) return null;
+        for (String name : names) {
+            if (name == null || name.isEmpty()) continue;
+            FileHandle fh = Gdx.files.internal(name);
+            if (!fh.exists()) continue;
+            Texture texture = new Texture(fh);
+            texture.setFilter(Texture.TextureFilter.Nearest, Texture.TextureFilter.Nearest);
+            return texture;
+        }
+        return null;
+    }
+
+    private String joinNames(String... names) {
+        if (names == null || names.length == 0) return "inconnu";
+        StringBuilder sb = new StringBuilder();
+        for (String name : names) {
+            if (name == null || name.isEmpty()) continue;
+            if (sb.length() > 0) sb.append(" ou ");
+            sb.append(name);
+        }
+        return sb.length() == 0 ? "inconnu" : sb.toString();
     }
 
     private void buildPlayerAnims() {
@@ -156,8 +176,15 @@ public class Assets {
         hugoSprites = buildHeroSet(
             hugoSwordFL, hugoSwordFR,
             hugoSwordFL, hugoSwordFR,
-            hugoJumpFL, hugoJumpFR,
+            hugoJumpFL, null,
             hugoSwordFL, hugoSwordFR
+        );
+        hugoGunSprites = buildHeroSet(
+            hugoMitrailletteFL, hugoMitrailletteFR,
+            hugoMitrailletteFL, hugoMitrailletteFR,
+            hugoJumpMinigun != null ? hugoJumpMinigun : hugoJumpFL,
+            null,
+            hugoMitrailletteFL, hugoMitrailletteFR
         );
 
         alexisSprites = buildHeroSet(
@@ -180,10 +207,29 @@ public class Assets {
     }
 
     private HeroSpriteSet.DirectionalAnimation buildDirectional(Texture leftTexture, Texture rightTexture, float fps, Animation.PlayMode playMode) {
-        return new HeroSpriteSet.DirectionalAnimation(
-            buildAnimation(leftTexture, fps, playMode),
-            buildAnimation(rightTexture, fps, playMode)
-        );
+        Animation<TextureRegion> left = buildAnimation(leftTexture, fps, playMode);
+        Animation<TextureRegion> right = buildAnimation(rightTexture, fps, playMode);
+        if (left == null && right != null) {
+            left = mirrorAnimation(right, fps, playMode);
+        } else if (right == null && left != null) {
+            right = mirrorAnimation(left, fps, playMode);
+        }
+        return new HeroSpriteSet.DirectionalAnimation(left, right);
+    }
+
+    private Animation<TextureRegion> mirrorAnimation(Animation<TextureRegion> source, float fps, Animation.PlayMode playMode) {
+        if (source == null) return null;
+        Object[] frames = source.getKeyFrames();
+        TextureRegion[] flipped = new TextureRegion[frames.length];
+        for (int i = 0; i < frames.length; i++) {
+            TextureRegion original = (TextureRegion) frames[i];
+            TextureRegion clone = new TextureRegion(original);
+            clone.flip(true, false);
+            flipped[i] = clone;
+        }
+        Animation<TextureRegion> animation = new Animation<>(1f / Math.max(1f, fps), flipped);
+        animation.setPlayMode(playMode);
+        return animation;
     }
 
     private Animation<TextureRegion> buildAnimation(Texture texture, float fps, Animation.PlayMode playMode) {
@@ -202,6 +248,14 @@ public class Assets {
         }
         if (width == 500 && height == 500) {
             return new SheetGrid(1, 5, 0, true);
+        }
+        if (height == 128) {
+            if (width == 768) return new SheetGrid(6, 1, 0);
+            if (width == 640) return new SheetGrid(5, 1, 0);
+        }
+        if (height == 64) {
+            if (width == 400) return new SheetGrid(5, 1, 0);
+            if (width == 320) return new SheetGrid(5, 1, 0);
         }
         return new SheetGrid(1, 1, 0);
     }
@@ -231,8 +285,15 @@ public class Assets {
      * @return sprite set for the hero, falling back to the other one if needed
      */
     public HeroSpriteSet getHeroSpriteSet(String heroName) {
-        if ("Alexis".equalsIgnoreCase(heroName)) {
+        if (heroName == null) {
+            return hugoSprites != null ? hugoSprites : alexisSprites;
+        }
+        String normalized = heroName.trim().toLowerCase(Locale.ROOT);
+        if (normalized.contains("alexis")) {
             return alexisSprites != null ? alexisSprites : hugoSprites;
+        }
+        if (normalized.contains("minigun") || normalized.contains("mitraillette") || normalized.contains("gatling")) {
+            if (hugoGunSprites != null) return hugoGunSprites;
         }
         return hugoSprites != null ? hugoSprites : alexisSprites;
     }
@@ -245,6 +306,7 @@ public class Assets {
             bg, groundTile, soldierSheet, zombieSheet, hearts,
             hugoSwordFL, hugoSwordFR, hugoJumpFL, hugoJumpFR,
             hugoMitrailletteFL, hugoMitrailletteFR, hugoPistoletFL, hugoPistoletFR,
+            hugoJumpMinigun,
             alexisSwordFL, alexisSwordFR, alexisJumpFL, alexisJumpFR,
             alexisMitrailletteFL, alexisMitrailletteFR, alexisPistoletFL, alexisPistoletFR
         })

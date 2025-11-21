@@ -33,11 +33,12 @@ public class ScoreManager {
      * @param level level number associated with the score
      * @param timeSeconds completion time in seconds
      */
-    public void addScore(int level, float timeSeconds) {
+    public void addScore(int level, float timeSeconds, String playerName) {
         ScoreEntry entry = new ScoreEntry();
         entry.level = level;
         entry.timeSeconds = Math.max(0f, timeSeconds);
         entry.timestamp = TimeUtils.millis();
+        entry.playerName = (playerName == null || playerName.trim().isEmpty()) ? "Anonyme" : playerName.trim();
         scores.add(entry);
         save();
     }
@@ -98,5 +99,6 @@ public class ScoreManager {
         public int level;
         public float timeSeconds;
         public long timestamp;
+        public String playerName;
     }
 }

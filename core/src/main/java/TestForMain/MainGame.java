@@ -16,6 +16,7 @@ public class MainGame extends Game {
     public SpriteBatch batch;
     public Assets assets;
     public String selectedHero = "Hugo";
+    public String playerName;
     public ScoreManager scoreManager;
     public SettingsManager settings;
     private final boolean[] levelCompleted = new boolean[4]; 
