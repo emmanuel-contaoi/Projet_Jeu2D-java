@@ -212,6 +212,7 @@ public class LevelScreen implements Screen {
 
         Array<Rectangle> solids = solidColliders != null ? solidColliders : new Array<>();
         player.physics(dt, worldWidth, solids);
+        player.updateEffects(dt);
         updateBullets(dt);
         updateZombies(dt);
 
@@ -358,6 +359,7 @@ public class LevelScreen implements Screen {
             float left = cameraX - Constants.VW / 2f;
             game.settings.drawBrightnessOverlay(batch, onePx, left, Constants.VW, Constants.VH);
         }
+        drawDamageIndicators();
         if (transitioningToNextLevel) {
             float alpha = Math.min(1f, transitionTimer / LEVEL_TRANSITION_DURATION);
             drawOverlay(alpha);
@@ -384,6 +386,34 @@ public class LevelScreen implements Screen {
         if (onePx == null) return;
         batch.setColor(0f, 0f, 0f, Math.min(1f, Math.max(0f, alpha)));
         batch.draw(onePx, cameraX - Constants.VW / 2f, 0f, Constants.VW, Constants.VH);
+        batch.setColor(Color.WHITE);
+    }
+
+    private void drawDamageIndicators() {
+        if (player == null || onePx == null) return;
+        if (!player.shouldDrawDamageIndicator()) return;
+        float alpha = player.damageIndicatorAlpha();
+        drawHpBar(alpha);
+        batch.setColor(1f, 0f, 0f, 0.18f * alpha);
+        batch.draw(onePx, cameraX - Constants.VW / 2f, 0f, Constants.VW, Constants.VH);
+        batch.setColor(Color.WHITE);
+    }
+
+    private void drawHpBar(float alpha) {
+        float current = player.getVie();
+        float max = player.getVieMax();
+        float ratio = Math.max(0f, Math.min(1f, current / Math.max(1f, max)));
+        float barW = 220f;
+        float barH = 18f;
+        float barX = player.x + player.w / 2f - barW / 2f;
+        float barY = player.y + player.h + 40f;
+
+        Color baseBg = new Color(0f, 0f, 0f, 0.5f * alpha);
+        Color baseFill = new Color(0.85f, 0.2f, 0.2f, alpha);
+        batch.setColor(baseBg);
+        batch.draw(onePx, barX, barY, barW, barH);
+        batch.setColor(baseFill);
+        batch.draw(onePx, barX + 2f, barY + 2f, (barW - 4f) * ratio, barH - 4f);
         batch.setColor(Color.WHITE);
     }
 

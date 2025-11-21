@@ -24,6 +24,8 @@ public class Player extends LivingEntity {
     public boolean onGround = true;
     private int jumpsPerformed = 0;
     private static final int MAX_JUMPS = 2;
+    private float damageFlashTimer = 0f;
+    private static final float DAMAGE_FLASH_DURATION = 1.5f;
 
     public int score = 0;
 
@@ -315,8 +317,26 @@ public class Player extends LivingEntity {
         return bounds;
     }
 
-    public int getHealth() {
-        return getVie();
+    @Override
+    public void subirDegats(int quantite) {
+        if (quantite <= 0) return;
+        super.subirDegats(quantite);
+        damageFlashTimer = DAMAGE_FLASH_DURATION;
+    }
+
+    public void updateEffects(float dt) {
+        if (damageFlashTimer > 0f) {
+            damageFlashTimer -= dt;
+            if (damageFlashTimer < 0f) damageFlashTimer = 0f;
+        }
+    }
+
+    public boolean shouldDrawDamageIndicator() {
+        return damageFlashTimer > 0f;
+    }
+
+    public float damageIndicatorAlpha() {
+        return Math.min(1f, Math.max(0f, damageFlashTimer / DAMAGE_FLASH_DURATION));
     }
 
     private boolean isHero(String name) {
