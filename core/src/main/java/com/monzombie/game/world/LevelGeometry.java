@@ -133,8 +133,14 @@ public class LevelGeometry {
 
     private void addHole(float x, float width) {
         if (width < 25f) return;
-        float hazardHeight = Constants.GROUND_H + 400f;
-        hazards.add(new Rectangle(x, 0f, width, hazardHeight));
+        float inset = 18f;
+        float innerWidth = width - inset * 2f;
+        if (innerWidth <= 8f) return;
+        float hazardHeight = Constants.GROUND_H * 0.7f;
+        float hazardY = -hazardHeight;
+        Rectangle rect = new Rectangle(x + inset, hazardY, innerWidth, hazardHeight);
+        hazards.add(rect);
+        System.out.println("Zone mortelle creee x=" + rect.x + " w=" + rect.width + " h=" + rect.height);
     }
 
     public Array<Rectangle> getSolids() {
