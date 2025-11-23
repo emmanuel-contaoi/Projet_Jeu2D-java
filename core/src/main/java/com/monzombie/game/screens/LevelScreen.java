@@ -3,6 +3,7 @@ package com.monzombie.game.screens;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
 import com.badlogic.gdx.Screen;
+import com.badlogic.gdx.files.FileHandle;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.Pixmap;
@@ -27,6 +28,7 @@ import com.monzombie.game.systems.Spawner;
 import com.monzombie.game.ui.Hud;
 import com.monzombie.game.util.Constants;
 import com.monzombie.game.world.LevelGeometry;
+import com.monzombie.game.util.ZombieTuning;
 
 import java.util.Locale;
 
@@ -50,6 +52,7 @@ public class LevelScreen implements Screen {
     private Hud hud;
 
     private Texture onePx;
+    private Texture levelBackground;
     private float levelTimer = 0f;
     private BitmapFont timerFont;
     private final GlyphLayout timerLayout = new GlyphLayout();
@@ -87,6 +90,11 @@ public class LevelScreen implements Screen {
     private String levelClearStory = "";
     private String levelClearButtonLabel = "";
     private int pendingLevelAfterClear = -1;
+    private boolean doorMessageActive = false;
+    private float doorMessageTimer = 0f;
+    private boolean endingVideoLaunched = false;
+    private static final float DOOR_MESSAGE_DURATION = 3.5f;
+    private static final String LEVEL2_DOOR_MESSAGE = "next level coming soon if we have good note";
 
     /**
      * Creates a level screen for the requested stage id.
@@ -120,8 +128,9 @@ public class LevelScreen implements Screen {
         timerFont.getData().setScale(2f);
 
         
-        worldWidth = assets.computeWorldWidth(Constants.VH);
-        geometry = new LevelGeometry(worldWidth);
+        worldWidth = assets.computeWorldWidth(Constants.VH, levelNumber);
+        levelBackground = assets.getLevelBackground(levelNumber);
+        geometry = LevelGeometry.forLevel(worldWidth, levelNumber);
         solidColliders = geometry.getSolids();
         hazardZones = geometry.getHazards();
         zombieZones = geometry.getZombieZones();
@@ -131,6 +140,7 @@ public class LevelScreen implements Screen {
         float groundY = Constants.GROUND_H;
 
         HeroSpriteSet heroSprites = assets.getHeroSpriteSet(chosenHero, levelNumber);
+        ZombieTuning zombieTuning = ZombieTuning.forLevel(levelNumber);
 
         player = new Player(
             startX,
@@ -141,6 +151,7 @@ public class LevelScreen implements Screen {
         );
 
         spawner = new Spawner();
+        spawner.setTuning(zombieTuning);
         spawner.setZones(zombieZones);
         spawner.populateInitialZombies(zombies, assets.zombieWalk);
         hud = new Hud(assets.heartFull, assets.heartEmpty, onePx);
@@ -177,6 +188,7 @@ public class LevelScreen implements Screen {
             updateTransition(dt);
             updateFinalMessage(dt);
         }
+        updateDoorMessage(dt);
         updateLevelClearOverlay();
         updateCamera();
         drawFrame();
@@ -187,9 +199,9 @@ public class LevelScreen implements Screen {
     
 
     private void drawBackground() {
-        if (assets.bg == null) return;
+        if (levelBackground == null) return;
         float h = Constants.VH;
-        batch.draw(assets.bg, 0f, 0f, worldWidth, h);
+        batch.draw(levelBackground, 0f, 0f, worldWidth, h);
     }
 
     
@@ -299,6 +311,9 @@ public class LevelScreen implements Screen {
         if (requiresScoreToFinish() && player.score < levelGoalScore) return;
         if (!isOnFinishDoor()) return;
 
+        if (levelNumber == 2 && !doorMessageActive && !endingVideoLaunched) {
+            triggerLevelTwoEndingSequence();
+        }
         levelFinished = true;
         gameOver = true;
         game.markLevelFinished(levelNumber);
@@ -397,6 +412,7 @@ public class LevelScreen implements Screen {
                 drawOverlay(0.95f);
                 drawLevelClearMessage();
             }
+            drawDoorMessage();
         } else {
             drawIntroOverlay();
         }
@@ -468,6 +484,54 @@ public class LevelScreen implements Screen {
 
         timerLayout.setText(timerFont, line3);
         timerFont.draw(batch, line3, cameraX - timerLayout.width / 2f, startY - 100f);
+    }
+
+    private void drawDoorMessage() {
+        if (!doorMessageActive || timerFont == null || onePx == null) return;
+        float doorStart = Math.max(0f, worldWidth - DOOR_ZONE_WIDTH);
+        float centerX = doorStart + DOOR_ZONE_WIDTH / 2f;
+        float boxWidth = 640f;
+        float boxHeight = 110f;
+        float boxX = centerX - boxWidth / 2f;
+        float boxY = Constants.VH - boxHeight - 80f;
+
+        batch.setColor(0f, 0.1f, 0.5f, 0.85f);
+        batch.draw(onePx, boxX, boxY, boxWidth, boxHeight);
+        batch.setColor(Color.WHITE);
+
+        float textX = boxX + 24f;
+        float textY = boxY + boxHeight - 32f;
+        timerFont.draw(batch, LEVEL2_DOOR_MESSAGE,
+            textX, textY, boxWidth - 48f, Align.center, true);
+    }
+
+    private void triggerLevelTwoEndingSequence() {
+        doorMessageActive = true;
+        doorMessageTimer = 0f;
+    }
+
+    private void updateDoorMessage(float dt) {
+        if (!doorMessageActive) return;
+        doorMessageTimer += dt;
+        if (doorMessageTimer >= DOOR_MESSAGE_DURATION) {
+            doorMessageActive = false;
+            launchEndingVideo();
+        }
+    }
+
+    private void launchEndingVideo() {
+        if (endingVideoLaunched) return;
+        endingVideoLaunched = true;
+        try {
+            FileHandle video = Gdx.files.internal("video fin.mp4");
+            if (video.exists()) {
+                Gdx.net.openURI(video.file().getAbsolutePath());
+            } else {
+                System.out.println("video fin.mp4 introuvable");
+            }
+        } catch (Exception e) {
+            System.out.println("Impossible d'ouvrir video fin.mp4 : " + e.getMessage());
+        }
     }
 
     private void clearScreen() {

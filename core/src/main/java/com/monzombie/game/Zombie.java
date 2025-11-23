@@ -13,6 +13,7 @@ import com.monzombie.game.util.Constants;
 public class Zombie extends LivingEntity {
 
     public float speed;
+    private final int damage;
 
     public float hitCooldown = 0f;
     public boolean flipLeft  = false;
@@ -38,12 +39,13 @@ public class Zombie extends LivingEntity {
      * @param speed movement speed along patrol zones
      * @param animWalk animation played while the zombie is alive
      */
-    public Zombie(float x, float y, float speed, Animation<TextureRegion> animWalk) {
-        super(Constants.ZOMBIE_W, Constants.ZOMBIE_H, Constants.ZOMBIE_HP);
+    public Zombie(float x, float y, float speed, int hp, int damage, Animation<TextureRegion> animWalk) {
+        super(Constants.ZOMBIE_W, Constants.ZOMBIE_H, Math.max(1, hp));
         this.x = x;
         this.y = y;
 
         this.speed = speed;
+        this.damage = Math.max(1, damage);
 
         this.animWalk = animWalk;
         patrolDir = MathUtils.randomBoolean() ? 1f : -1f;
@@ -237,6 +239,10 @@ public class Zombie extends LivingEntity {
         this.patrolZone = zone;
         this.zoneIndex = zone != null ? index : -1;
         clampInsideZone();
+    }
+
+    public int getDamage() {
+        return damage;
     }
 
     /**

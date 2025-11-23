@@ -72,7 +72,7 @@ public class CollisionSystem {
             if (touchesPlayer) {
                 if (z.hitCooldown <= 0f) {
                     z.hitCooldown = 0.8f;
-                    player.subirDegats(Constants.ZOMBIE_DAMAGE);
+                    player.subirDegats(z.getDamage());
                 }
                 separatePlayerAndZombie(z, playerBox, zBox);
             }

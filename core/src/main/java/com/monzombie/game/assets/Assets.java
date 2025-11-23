@@ -7,6 +7,7 @@ import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.Animation;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.utils.Array;
+import com.monzombie.game.util.Constants;
 import java.util.Locale;
 
 /**
@@ -16,6 +17,7 @@ public class Assets {
 
     
     public Texture bg;                
+    public Texture forestBg;          
     public Texture groundTile;        
     public Texture soldierSheet;      
     public Texture zombieSheet;       
@@ -63,6 +65,7 @@ public class Assets {
      */
     public void load() {
         bg = loadTexture("bunker.jpg");
+        forestBg = loadTextureOrNull("foret.png");
         soldierSheet = loadTexture("sprite sheet 8-bit 2.png", "hero.png");
         zombieSheet  = loadTexture("zombie_sheet.png");
         hearts       = loadTexture("hearts.png");
@@ -355,7 +358,7 @@ public class Assets {
      */
     public void dispose() {
         for (Texture t : new Texture[]{
-            bg, groundTile, soldierSheet, zombieSheet, hearts,
+            bg, forestBg, groundTile, soldierSheet, zombieSheet, hearts,
             hugoSwordFL, hugoSwordFR, hugoJumpFL, hugoJumpFR,
             hugoMitrailletteFL, hugoMitrailletteFR, hugoPistoletFL, hugoPistoletFR,
             hugoJumpMinigun,
@@ -373,8 +376,20 @@ public class Assets {
      * @param viewportH height of the camera viewport
      * @return scaled world width
      */
-    public float computeWorldWidth(float viewportH){
-        float scale = viewportH / bg.getHeight();
-        return bg.getWidth()*scale;
+    public float computeWorldWidth(float viewportH, int levelNumber){
+        Texture background = getLevelBackground(levelNumber);
+        if (background == null) {
+            background = bg;
+        }
+        if (background == null) return Constants.VW;
+        float scale = viewportH / background.getHeight();
+        return background.getWidth() * scale;
+    }
+
+    public Texture getLevelBackground(int levelNumber) {
+        if (levelNumber == 2 && forestBg != null) {
+            return forestBg;
+        }
+        return bg;
     }
 }

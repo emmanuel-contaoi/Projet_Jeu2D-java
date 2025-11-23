@@ -31,6 +31,7 @@ public class Player extends LivingEntity {
 
     
     private boolean facingLeft = false;
+    private boolean jumpFacingLeft = false;
 
     private final Rectangle swordBounds = new Rectangle();
     private final HeroSpriteSet sprites;
@@ -64,6 +65,7 @@ public class Player extends LivingEntity {
         this.sprites = sprites;
         this.settings = settings;
         this.heroName = heroName;
+        this.jumpFacingLeft = facingLeft;
     }
 
     
@@ -181,6 +183,9 @@ public class Player extends LivingEntity {
     private void updateActionState(float dt) {
         Action desired = determineAction();
         if (desired != currentAction) {
+            if (desired == Action.JUMP) {
+                jumpFacingLeft = facingLeft;
+            }
             currentAction = desired;
             actionTimer = 0f;
         } else {
@@ -298,8 +303,9 @@ public class Player extends LivingEntity {
 
     private TextureRegion selectFrame() {
         if (sprites == null) return null;
+        boolean facingForFrame = currentAction == Action.JUMP ? jumpFacingLeft : facingLeft;
         float stateTime = currentAction == Action.SHOOT ? shootStateTime : actionTimer;
-        return sprites.frame(currentAction, facingLeft, stateTime);
+        return sprites.frame(currentAction, facingForFrame, stateTime);
     }
 
     
