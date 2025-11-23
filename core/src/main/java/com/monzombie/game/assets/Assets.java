@@ -32,6 +32,9 @@ public class Assets {
     public Texture alexisSwordFR;
     public Texture alexisJumpFL;
     public Texture alexisJumpFR;
+    public Texture alexisJumpSwordNoMove;
+    public Texture alexisJumpMinigunFrame;
+    public Texture alexisJumpGatlingFrame;
     public Texture alexisMitrailletteFL;
     public Texture alexisMitrailletteFR;
     public Texture alexisPistoletFL;
@@ -41,6 +44,9 @@ public class Assets {
     public HeroSpriteSet hugoSprites;
     public HeroSpriteSet hugoGunSprites;
     public HeroSpriteSet alexisSprites;
+    public HeroSpriteSet alexisLevel1Sprites;
+    public HeroSpriteSet alexisLevel2Sprites;
+    public HeroSpriteSet alexisLevel3Sprites;
 
     
     public Animation<TextureRegion> animWalk, animRun, animShot;
@@ -73,6 +79,12 @@ public class Assets {
         alexisSwordFR = loadTextureOrNull("AlexisSwordFR.png");
         alexisJumpFL  = loadTextureOrNull("AlexisJumpingFL.png", "Sprite /player/alexis/alexisjumpminigun.png");
         alexisJumpFR  = loadTextureOrNull("AlexisJumpingFR.png");
+        alexisJumpSwordNoMove = loadTextureOrNull("alexisjumpattackswordnomove.png",
+            "Sprite /player/alexis/alexisjumpattacksword.png");
+        alexisJumpMinigunFrame = loadTextureOrNull("alexisjumpminigun.png",
+            "Sprite /player/alexis/alexisjumpminigun.png");
+        alexisJumpGatlingFrame = loadTextureOrNull("alexisjumpgatling.png",
+            "Sprite /player/alexis/alexisjumpgatling.png");
         alexisMitrailletteFL = loadTextureOrNull("AlexisMitrailletteFL.png", "Sprite /player/alexis/alexiswalkminigun.png");
         alexisMitrailletteFR = loadTextureOrNull("AlexisMitrailletteFR.png", "alexisGunwalk.png");
         alexisPistoletFL = loadTextureOrNull("AlexisPistoletFL.png", "Sprite /player/alexis/alexisjumpgatling.png");
@@ -187,10 +199,37 @@ public class Assets {
             hugoMitrailletteFL, hugoMitrailletteFR
         );
 
-        alexisSprites = buildHeroSet(
+        alexisLevel1Sprites = buildAlexisSet(alexisJumpSwordNoMove);
+        alexisLevel2Sprites = buildAlexisSet(alexisJumpMinigunFrame);
+        alexisLevel3Sprites = buildAlexisSet(alexisJumpGatlingFrame);
+        alexisSprites = firstAvailable(
+            alexisLevel1Sprites,
+            alexisLevel2Sprites,
+            alexisLevel3Sprites,
+            buildAlexisSet(null)
+        );
+    }
+
+    private HeroSpriteSet firstAvailable(HeroSpriteSet... sets) {
+        if (sets == null) return null;
+        for (HeroSpriteSet set : sets) {
+            if (set != null) return set;
+        }
+        return null;
+    }
+
+    private HeroSpriteSet buildAlexisSet(Texture jumpTexture) {
+        Texture jumpLeft = jumpTexture != null ? null : alexisJumpFL;
+        Texture jumpRight = jumpTexture != null
+            ? jumpTexture
+            : (alexisJumpFR != null ? alexisJumpFR : alexisJumpFL);
+        if (jumpLeft == null && jumpRight == null) {
+            jumpRight = alexisSwordFR;
+        }
+        return buildHeroSet(
             alexisSwordFL, alexisSwordFR,
             alexisSwordFL, alexisSwordFR,
-            alexisJumpFL, alexisJumpFR,
+            jumpLeft, jumpRight,
             alexisSwordFL, alexisSwordFR
         );
     }
@@ -285,17 +324,30 @@ public class Assets {
      * @return sprite set for the hero, falling back to the other one if needed
      */
     public HeroSpriteSet getHeroSpriteSet(String heroName) {
+        return getHeroSpriteSet(heroName, -1);
+    }
+
+    public HeroSpriteSet getHeroSpriteSet(String heroName, int levelNumber) {
         if (heroName == null) {
-            return hugoSprites != null ? hugoSprites : alexisSprites;
+            return hugoSprites != null ? hugoSprites : selectAlexisSetForLevel(levelNumber);
         }
         String normalized = heroName.trim().toLowerCase(Locale.ROOT);
         if (normalized.contains("alexis")) {
-            return alexisSprites != null ? alexisSprites : hugoSprites;
+            HeroSpriteSet alexisSet = selectAlexisSetForLevel(levelNumber);
+            if (alexisSet != null) return alexisSet;
+            return hugoSprites;
         }
         if (normalized.contains("minigun") || normalized.contains("mitraillette") || normalized.contains("gatling")) {
             if (hugoGunSprites != null) return hugoGunSprites;
         }
-        return hugoSprites != null ? hugoSprites : alexisSprites;
+        return hugoSprites != null ? hugoSprites : selectAlexisSetForLevel(levelNumber);
+    }
+
+    private HeroSpriteSet selectAlexisSetForLevel(int levelNumber) {
+        if (levelNumber == 1 && alexisLevel1Sprites != null) return alexisLevel1Sprites;
+        if (levelNumber == 2 && alexisLevel2Sprites != null) return alexisLevel2Sprites;
+        if (levelNumber == 3 && alexisLevel3Sprites != null) return alexisLevel3Sprites;
+        return alexisSprites;
     }
 
     /**
@@ -308,6 +360,7 @@ public class Assets {
             hugoMitrailletteFL, hugoMitrailletteFR, hugoPistoletFL, hugoPistoletFR,
             hugoJumpMinigun,
             alexisSwordFL, alexisSwordFR, alexisJumpFL, alexisJumpFR,
+            alexisJumpSwordNoMove, alexisJumpMinigunFrame, alexisJumpGatlingFrame,
             alexisMitrailletteFL, alexisMitrailletteFR, alexisPistoletFL, alexisPistoletFR
         })
             if (t != null) t.dispose();

@@ -82,6 +82,11 @@ public class LevelScreen implements Screen {
     private final Rectangle startButtonBounds = new Rectangle();
     private final Rectangle skipButtonBounds = new Rectangle();
     private final Vector2 introClick = new Vector2();
+    private boolean levelClearOverlayActive = false;
+    private final Rectangle levelClearButtonBounds = new Rectangle();
+    private String levelClearStory = "";
+    private String levelClearButtonLabel = "";
+    private int pendingLevelAfterClear = -1;
 
     /**
      * Creates a level screen for the requested stage id.
@@ -125,7 +130,7 @@ public class LevelScreen implements Screen {
         float startX = 300f;
         float groundY = Constants.GROUND_H;
 
-        HeroSpriteSet heroSprites = assets.getHeroSpriteSet(chosenHero);
+        HeroSpriteSet heroSprites = assets.getHeroSpriteSet(chosenHero, levelNumber);
 
         player = new Player(
             startX,
@@ -172,6 +177,7 @@ public class LevelScreen implements Screen {
             updateTransition(dt);
             updateFinalMessage(dt);
         }
+        updateLevelClearOverlay();
         updateCamera();
         drawFrame();
     }
@@ -300,11 +306,8 @@ public class LevelScreen implements Screen {
             game.scoreManager.addScore(levelNumber, levelTimer, game.playerName);
         }
         System.out.println("Niveau " + levelNumber + " terminé !");
-        if (levelNumber < 3) {
-            startLevelTransition(levelNumber + 1);
-        } else {
-            startFinalMessage();
-        }
+        int nextLevel = levelNumber < 3 ? levelNumber + 1 : -1;
+        startLevelClearOverlay(nextLevel);
     }
 
     private boolean isOnFinishDoor() {
@@ -390,6 +393,9 @@ public class LevelScreen implements Screen {
             if (showFinalMessage) {
                 drawOverlay(0.95f);
                 drawFinalMessage();
+            } else if (levelClearOverlayActive) {
+                drawOverlay(0.95f);
+                drawLevelClearMessage();
             }
         } else {
             drawIntroOverlay();
@@ -626,6 +632,84 @@ public class LevelScreen implements Screen {
         float textX = startButtonBounds.x + (startButtonBounds.width - timerLayout.width) / 2f;
         float textY = startButtonBounds.y + (startButtonBounds.height + timerLayout.height) / 2f;
         timerFont.draw(batch, timerLayout, textX, textY);
+    }
+
+    private void startLevelClearOverlay(int nextLevel) {
+        levelClearOverlayActive = true;
+        transitioningToNextLevel = false;
+        pendingLevelAfterClear = nextLevel;
+        levelClearStory = getLevelClearStory(levelNumber);
+        levelClearButtonLabel = buildLevelClearButtonLabel(levelNumber);
+    }
+
+    private void updateLevelClearOverlay() {
+        if (!levelClearOverlayActive) return;
+        if (!Gdx.input.justTouched()) return;
+        introClick.set(Gdx.input.getX(), Gdx.input.getY());
+        viewport.unproject(introClick);
+        refreshLevelClearButtonBounds();
+        if (levelClearButtonBounds.contains(introClick)) {
+            levelClearOverlayActive = false;
+            if (pendingLevelAfterClear > 0) {
+                int target = pendingLevelAfterClear;
+                pendingLevelAfterClear = -1;
+                game.setScreen(new LevelScreen(game, target));
+            } else {
+                pendingLevelAfterClear = -1;
+                game.setScreen(new LevelSelectScreen(game));
+            }
+        }
+    }
+
+    private void refreshLevelClearButtonBounds() {
+        float buttonWidth = 320f;
+        float buttonHeight = 80f;
+        float viewLeft = cameraX - Constants.VW / 2f;
+        float buttonX = viewLeft + (Constants.VW - buttonWidth) / 2f;
+        float buttonY = Constants.VH / 2f - 160f;
+        levelClearButtonBounds.set(buttonX, buttonY, buttonWidth, buttonHeight);
+    }
+
+    private void drawLevelClearMessage() {
+        if (timerFont == null) return;
+        float viewLeft = cameraX - Constants.VW / 2f;
+        float textX = viewLeft + 80f;
+        float textY = Constants.VH / 2f + 150f;
+        float targetWidth = Constants.VW - 160f;
+        timerFont.setColor(Color.WHITE);
+        timerFont.draw(batch, levelClearStory, textX, textY, targetWidth, Align.left, true);
+        drawLevelClearButton();
+    }
+
+    private void drawLevelClearButton() {
+        if (onePx == null || timerFont == null) return;
+        refreshLevelClearButtonBounds();
+        batch.setColor(0f, 0f, 0f, 0.85f);
+        batch.draw(onePx, levelClearButtonBounds.x, levelClearButtonBounds.y,
+            levelClearButtonBounds.width, levelClearButtonBounds.height);
+        batch.setColor(Color.WHITE);
+        timerLayout.setText(timerFont, levelClearButtonLabel != null ? levelClearButtonLabel : "");
+        float textX = levelClearButtonBounds.x + (levelClearButtonBounds.width - timerLayout.width) / 2f;
+        float textY = levelClearButtonBounds.y + (levelClearButtonBounds.height + timerLayout.height) / 2f;
+        timerFont.draw(batch, timerLayout, textX, textY);
+    }
+
+    private String getLevelClearStory(int completedLevel) {
+        if (completedLevel == 1) {
+            return "I've found no survivors outside the bunker, but what was all those creatures... That was so scary... What are those noises? I'm hearing some of them coming, would this be some survivors? I need to go see that.";
+        } else if (completedLevel == 2) {
+            return "Those horrible creatures are zombies!? What happened 3 years ago? Is there even some hope to find survivors out there...";
+        } else if (completedLevel == 3) {
+            return "So... At the end, it was just that wasn't it, there was no survivors, no more hope... What's on my arms??? Oh, so here it is, that will just end like that...";
+        }
+        return "";
+    }
+
+    private String buildLevelClearButtonLabel(int completedLevel) {
+        if (completedLevel == 3) {
+            return "level 3 - clear : Status : GAME COMPLETED";
+        }
+        return "level " + completedLevel + " - clear";
     }
 
     private void refreshSkipButtonBounds() {
