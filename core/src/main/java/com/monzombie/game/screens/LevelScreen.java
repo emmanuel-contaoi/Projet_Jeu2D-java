@@ -11,7 +11,9 @@ import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.GlyphLayout;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.math.Rectangle;
+import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.utils.Array;
+import com.badlogic.gdx.utils.Align;
 import com.badlogic.gdx.utils.viewport.FitViewport;
 import com.badlogic.gdx.utils.viewport.Viewport;
 import TestForMain.MainGame;
@@ -71,6 +73,15 @@ public class LevelScreen implements Screen {
     private boolean showFinalMessage = false;
     private float finalMessageTimer = 0f;
     private static final float FINAL_MESSAGE_DURATION = 4f;
+    private boolean levelIntroActive = false;
+    private boolean levelIntroFullyShown = false;
+    private float levelIntroTimer = 0f;
+    private int levelIntroDisplayedChars = 0;
+    private String levelIntroStory = "";
+    private static final float INTRO_CHAR_PER_SECOND = 55f;
+    private final Rectangle startButtonBounds = new Rectangle();
+    private final Rectangle skipButtonBounds = new Rectangle();
+    private final Vector2 introClick = new Vector2();
 
     /**
      * Creates a level screen for the requested stage id.
@@ -131,6 +142,13 @@ public class LevelScreen implements Screen {
 
         cameraX = startX + player.w / 2f;
         initialized = true;
+        if (levelNumber == 1) {
+            levelIntroActive = true;
+            levelIntroStory = "It's been 3 years since the last nuclear bomb, three years closed off in that bunker. Maria heard some noises out there; she believes that there might be some survivors out there... My whole family is counting on me, I need to save them. This is my mission.";
+            levelIntroTimer = 0f;
+            levelIntroDisplayedChars = 0;
+            levelIntroFullyShown = false;
+        }
     }
 
     /**
@@ -141,15 +159,19 @@ public class LevelScreen implements Screen {
     @Override
     public void render(float delta) {
         float dt = clampDelta(delta);
-        if (!gameOver) {
+        if (!gameOver && !levelIntroActive) {
             levelTimer += dt;
         }
-        if (handlePauseRequest()) return;
+        if (!levelIntroActive && handlePauseRequest()) return;
 
-        handleInput(dt);
-        updateGame(dt);
-        updateTransition(dt);
-        updateFinalMessage(dt);
+        if (levelIntroActive) {
+            updateIntro(dt);
+        } else {
+            handleInput(dt);
+            updateGame(dt);
+            updateTransition(dt);
+            updateFinalMessage(dt);
+        }
         updateCamera();
         drawFrame();
     }
@@ -352,21 +374,25 @@ public class LevelScreen implements Screen {
             drawDebugColliders();
         }
 
-        drawTimerDisplay();
-        hud.render(batch, cameraX, Constants.VW, Constants.VH,
-            player.getVie(), Constants.PLAYER_HP_MAX, levelTimer, player.score);
-        if (game.settings != null) {
-            float left = cameraX - Constants.VW / 2f;
-            game.settings.drawBrightnessOverlay(batch, onePx, left, Constants.VW, Constants.VH);
-        }
-        drawDamageIndicators();
-        if (transitioningToNextLevel) {
-            float alpha = Math.min(1f, transitionTimer / LEVEL_TRANSITION_DURATION);
-            drawOverlay(alpha);
-        }
-        if (showFinalMessage) {
-            drawOverlay(0.95f);
-            drawFinalMessage();
+        if (!levelIntroActive) {
+            drawTimerDisplay();
+            hud.render(batch, cameraX, Constants.VW, Constants.VH,
+                player.getVie(), Constants.PLAYER_HP_MAX, levelTimer, player.score);
+            if (game.settings != null) {
+                float left = cameraX - Constants.VW / 2f;
+                game.settings.drawBrightnessOverlay(batch, onePx, left, Constants.VW, Constants.VH);
+            }
+            drawDamageIndicators();
+            if (transitioningToNextLevel) {
+                float alpha = Math.min(1f, transitionTimer / LEVEL_TRANSITION_DURATION);
+                drawOverlay(alpha);
+            }
+            if (showFinalMessage) {
+                drawOverlay(0.95f);
+                drawFinalMessage();
+            }
+        } else {
+            drawIntroOverlay();
         }
 
         batch.end();
@@ -539,5 +565,88 @@ public class LevelScreen implements Screen {
         int minutes = (int) (elapsed / 60f);
         float seconds = elapsed - minutes * 60f;
         return String.format(Locale.US, "%02d:%05.2f", minutes, seconds);
+    }
+
+    private void updateIntro(float dt) {
+        if (!levelIntroActive) return;
+        levelIntroTimer += dt;
+        int charsToShow = Math.min(levelIntroStory.length(), (int) (levelIntroTimer * INTRO_CHAR_PER_SECOND));
+        levelIntroDisplayedChars = charsToShow;
+        levelIntroFullyShown = charsToShow >= levelIntroStory.length();
+        if (Gdx.input.justTouched()) {
+            introClick.set(Gdx.input.getX(), Gdx.input.getY());
+            viewport.unproject(introClick);
+            refreshSkipButtonBounds();
+            if (skipButtonBounds.contains(introClick)) {
+                levelIntroActive = false;
+                return;
+            }
+            if (levelIntroFullyShown) {
+                refreshStartButtonBounds();
+                if (startButtonBounds.contains(introClick)) {
+                    levelIntroActive = false;
+                }
+            }
+        }
+    }
+
+    private void drawIntroOverlay() {
+        drawOverlay(0.97f);
+        if (timerFont == null) return;
+        float viewLeft = cameraX - Constants.VW / 2f;
+        float textX = viewLeft + 60f;
+        float textY = Constants.VH - 80f;
+        float targetWidth = Constants.VW - 120f;
+        timerFont.setColor(Color.WHITE);
+        String visibleText = levelIntroStory.substring(0, levelIntroDisplayedChars);
+        timerFont.draw(batch, visibleText, textX, textY, targetWidth, Align.left, true);
+        drawSkipButton();
+        if (levelIntroFullyShown) {
+            drawStartButton();
+        }
+    }
+
+    private void refreshStartButtonBounds() {
+        float buttonWidth = 240f;
+        float buttonHeight = 70f;
+        float viewLeft = cameraX - Constants.VW / 2f;
+        float buttonX = viewLeft + (Constants.VW - buttonWidth) / 2f;
+        float buttonY = 120f;
+        startButtonBounds.set(buttonX, buttonY, buttonWidth, buttonHeight);
+    }
+
+    private void drawStartButton() {
+        if (onePx == null || timerFont == null) return;
+        refreshStartButtonBounds();
+        batch.setColor(0f, 0f, 0f, 0.8f);
+        batch.draw(onePx, startButtonBounds.x, startButtonBounds.y,
+            startButtonBounds.width, startButtonBounds.height);
+        batch.setColor(Color.WHITE);
+        timerLayout.setText(timerFont, "start");
+        float textX = startButtonBounds.x + (startButtonBounds.width - timerLayout.width) / 2f;
+        float textY = startButtonBounds.y + (startButtonBounds.height + timerLayout.height) / 2f;
+        timerFont.draw(batch, timerLayout, textX, textY);
+    }
+
+    private void refreshSkipButtonBounds() {
+        float buttonWidth = 160f;
+        float buttonHeight = 55f;
+        float viewLeft = cameraX - Constants.VW / 2f;
+        float buttonX = viewLeft + Constants.VW - buttonWidth - 40f;
+        float buttonY = Constants.VH - buttonHeight - 30f;
+        skipButtonBounds.set(buttonX, buttonY, buttonWidth, buttonHeight);
+    }
+
+    private void drawSkipButton() {
+        if (onePx == null || timerFont == null) return;
+        refreshSkipButtonBounds();
+        batch.setColor(0f, 0f, 0f, 0.7f);
+        batch.draw(onePx, skipButtonBounds.x, skipButtonBounds.y,
+            skipButtonBounds.width, skipButtonBounds.height);
+        batch.setColor(Color.WHITE);
+        timerLayout.setText(timerFont, "skip");
+        float textX = skipButtonBounds.x + (skipButtonBounds.width - timerLayout.width) / 2f;
+        float textY = skipButtonBounds.y + (skipButtonBounds.height + timerLayout.height) / 2f;
+        timerFont.draw(batch, timerLayout, textX, textY);
     }
 }
